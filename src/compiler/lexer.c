@@ -157,19 +157,20 @@ static Token lex_pp_keyword(Lexer* lexer)
 
 static str lex_header_name(Lexer* lexer)
 {
-	// skip the first quote
-	lexer_advance(lexer);
+	// first quote already consumed
 	uint64_t start = lexer->pos;
+	uint64_t end;
 	while (true) {
 		MaybeChar c = lexer_peek(lexer, 0);
 		if (!c.present || c.value == '>') {
+			end = lexer->pos;
 			break;
 		}
 		lexer_advance(lexer);
 	}
 	// skip the last quote
 	lexer_advance(lexer);
-	return str_ref_chars(&lexer->source.ptr[start], lexer->pos - start - 1);
+	return str_ref_chars(&lexer->source.ptr[start], end - start);
 }
 
 static void lex(Lexer* lexer)

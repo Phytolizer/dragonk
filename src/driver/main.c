@@ -88,10 +88,16 @@ int main(int argc, char** argv)
 			return 1;
 		}
 		printf(
-		        SOURCE_LOCATION_FMT ": %s\n",
+		        SOURCE_LOCATION_FMT ": %s",
 		        SOURCE_LOCATION_ARG(tok.location),
 		        TOKEN_STRINGS[tok.type]
 		);
+		if (tok.value.kind != TK_NONE) {
+			printf(" (value: ");
+			token_value_show(tok.value, stdout);
+			printf(")");
+		}
+		printf("\n");
 		token_free(tok);
 	}
 

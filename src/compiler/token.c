@@ -22,7 +22,7 @@ void token_value_show(TokenValue val, FILE* fp)
 		(void)fprintf(fp, "none");
 		break;
 	case TK_STR:
-		(void)fprintf(fp, "str(%s)", val.get.str.ptr);
+		(void)fprintf(fp, "str(" STR_FMT ")", STR_ARG(val.get.str));
 		break;
 	case TK_NUM:
 		(void)fprintf(fp, "num(%" PRId64 ")", val.get.num);
