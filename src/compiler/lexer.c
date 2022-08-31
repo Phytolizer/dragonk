@@ -209,11 +209,12 @@ static void lex(Lexer* lexer)
 	case '<':
 		if (lexer->canLexHeaderName) {
 			lexer->canLexHeaderName = false;
+			str headerName = lex_header_name(lexer);
 			lexer->lookahead =
 			        lexer_add_token(
 			                lexer,
 			                TT_HEADER_NAME,
-			                TOKEN_VALUE_STR(lex_header_name(lexer))
+			                TOKEN_VALUE_STR(headerName)
 			        );
 			break;
 		}
