@@ -72,6 +72,17 @@ int main(int argc, char** argv)
 	                str_ref(fileArg.value)
 	        );
 	for (Token tok = lexer_first(&lexer); !lexer_done(&lexer); tok = lexer_next(&lexer)) {
+		if (tok.type == TT_ERROR) {
+			(void)fprintf(
+			        stderr,
+			        SOURCE_LOCATION_FMT ": unrecognized token: '" STR_FMT "'\n",
+			        SOURCE_LOCATION_ARG(tok.location),
+			        STR_ARG(tok.text)
+			);
+			token_free(tok);
+			str_free(inputContents);
+			return 1;
+		}
 		printf(
 		        SOURCE_LOCATION_FMT ": %s\n",
 		        SOURCE_LOCATION_ARG(tok.location),
