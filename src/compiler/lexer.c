@@ -218,6 +218,7 @@ static void lex(Lexer* lexer)
 			        );
 			break;
 		}
+		// fallthrough
 	default:
 		if (char_is_letter(c.value)) {
 			lexer->lookahead = lex_ident_or_kw(lexer);
