@@ -190,11 +190,12 @@ static str lex_header_name(Lexer* lexer, char headerStart)
 		}
 		lexer_advance(lexer);
 	}
-	// skip the last quote
-	lexer_advance(lexer);
 	if (hadError) {
 		return str_empty;
 	}
+	// skip the last quote
+	lexer_advance(lexer);
+
 	str text = str_ref_chars(&lexer->source.ptr[start], end - start);
 	return str_copy(text);
 }
