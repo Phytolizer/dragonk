@@ -71,7 +71,11 @@ int main(int argc, char** argv)
 	                str_ref(inputContents),
 	                str_ref(fileArg.value)
 	        );
-	for (Token tok = lexer_first(&lexer); !lexer_done(&lexer); tok = lexer_next(&lexer)) {
+	for (
+	        Token tok = lexer_first(&lexer);
+	        !lexer_done(&lexer);
+	        tok = lexer_next(&lexer)
+	) {
 		if (tok.type == TT_ERROR) {
 			(void)fprintf(
 			        stderr,
