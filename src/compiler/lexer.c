@@ -42,7 +42,7 @@ static str lexer_text(Lexer* lexer)
 	return str_ref_chars(text_begin, text_len);
 }
 
-static Token lexer_add_token(Lexer* lexer, TokenType type, TokenValue value)
+static Token make_token(Lexer* lexer, TokenType type, TokenValue value)
 {
 	return (Token) {
 		.type = type,
@@ -116,9 +116,9 @@ static Token lex_ident_or_kw(Lexer* lexer)
 	str text = lexer_text(lexer);
 	Keyword* kw = keyword_lookup(text.ptr, str_len(text));
 	if (kw != NULL) {
-		return lexer_add_token(lexer, kw->type, TOKEN_VALUE_NONE);
+		return make_token(lexer, kw->type, TOKEN_VALUE_NONE);
 	}
-	return lexer_add_token(lexer, TT_IDENT, TOKEN_VALUE_STR(str_copy(text)));
+	return make_token(lexer, TT_IDENT, TOKEN_VALUE_STR(str_copy(text)));
 }
 
 static Token lex_number(Lexer* lexer)
@@ -134,7 +134,7 @@ static Token lex_number(Lexer* lexer)
 	// doesn't need to null terminate, strtoll will stop at the first non-digit
 	str text = lexer_text(lexer);
 	long long n = strtoll(text.ptr, NULL, 10);
-	return lexer_add_token(lexer, TT_NUM, TOKEN_VALUE_NUM(n));
+	return make_token(lexer, TT_NUM, TOKEN_VALUE_NUM(n));
 }
 
 static Token lex_pp_keyword(Lexer* lexer)
@@ -150,10 +150,10 @@ static Token lex_pp_keyword(Lexer* lexer)
 	str text = lexer_text(lexer);
 	PPKeyword* kw = ppkeyword_lookup(text.ptr, str_len(text));
 	if (kw == NULL) {
-		return lexer_add_token(lexer, TT_ERROR, TOKEN_VALUE_NONE);
+		return make_token(lexer, TT_ERROR, TOKEN_VALUE_NONE);
 	}
 	lexer->canLexHeaderName = true;
-	return lexer_add_token(lexer, kw->type, TOKEN_VALUE_NONE);
+	return make_token(lexer, kw->type, TOKEN_VALUE_NONE);
 }
 
 static bool is_header_end(char c, char headerStart)
@@ -203,25 +203,25 @@ static void lex(Lexer* lexer)
 	lexer->tokenStart = lexer->pos;
 	MaybeChar c = lexer_advance(lexer);
 	if (!c.present) {
-		lexer->lookahead = lexer_add_token(lexer, TT_EOF, TOKEN_VALUE_NONE);
+		lexer->lookahead = make_token(lexer, TT_EOF, TOKEN_VALUE_NONE);
 		return;
 	}
 	bool hadError = false;
 	switch (c.value) {
 	case '{':
-		lexer->lookahead = lexer_add_token(lexer, TT_LBRACE, TOKEN_VALUE_NONE);
+		lexer->lookahead = make_token(lexer, TT_LBRACE, TOKEN_VALUE_NONE);
 		break;
 	case '}':
-		lexer->lookahead = lexer_add_token(lexer, TT_RBRACE, TOKEN_VALUE_NONE);
+		lexer->lookahead = make_token(lexer, TT_RBRACE, TOKEN_VALUE_NONE);
 		break;
 	case '(':
-		lexer->lookahead = lexer_add_token(lexer, TT_LPAREN, TOKEN_VALUE_NONE);
+		lexer->lookahead = make_token(lexer, TT_LPAREN, TOKEN_VALUE_NONE);
 		break;
 	case ')':
-		lexer->lookahead = lexer_add_token(lexer, TT_RPAREN, TOKEN_VALUE_NONE);
+		lexer->lookahead = make_token(lexer, TT_RPAREN, TOKEN_VALUE_NONE);
 		break;
 	case ';':
-		lexer->lookahead = lexer_add_token(lexer, TT_SEMI, TOKEN_VALUE_NONE);
+		lexer->lookahead = make_token(lexer, TT_SEMI, TOKEN_VALUE_NONE);
 		break;
 	case '#':
 		lexer->lookahead = lex_pp_keyword(lexer);
@@ -234,7 +234,7 @@ static void lex(Lexer* lexer)
 				hadError = true;
 			} else {
 				lexer->lookahead =
-				        lexer_add_token(
+				        make_token(
 				                lexer,
 				                TT_HEADER_NAME,
 				                TOKEN_VALUE_STR(headerName)
@@ -254,7 +254,7 @@ static void lex(Lexer* lexer)
 		}
 	}
 	if (hadError) {
-		lexer->lookahead = lexer_add_token(lexer, TT_ERROR, TOKEN_VALUE_NONE);
+		lexer->lookahead = make_token(lexer, TT_ERROR, TOKEN_VALUE_NONE);
 	}
 }
 
