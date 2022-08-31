@@ -179,8 +179,10 @@ static str lex_header_name(Lexer* lexer, char headerStart)
 			end = lexer->pos;
 			break;
 		}
-		if (!char_is_letter_or_digit(c.value) && c.value != '.' && c.value != '/') {
+		if (c.value == '\n') {
 			hadError = true;
+			// the end was probably forgotten
+			break;
 		}
 		lexer_advance(lexer);
 	}
