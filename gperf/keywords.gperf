@@ -1,12 +1,12 @@
 %{
 #include "dragon/token.h"
-
-#include <string.h>
 %}
 %struct-type
 %define hash-function-name keyword_hash
 %define lookup-function-name keyword_lookup
 %compare-strncmp
+%enum
+%includes
 struct Keyword { const char* name; TokenType type; };
 %%
 int,    KW_INT
