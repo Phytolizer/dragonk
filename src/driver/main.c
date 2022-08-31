@@ -6,7 +6,8 @@
 
 int main(int argc, char** argv)
 {
-	Arg fileArg = ARG_POS(str_lit("FILE"), str_lit("The file to compile"));
+	Arg fileArg =
+	        ARG_POS(str_lit("FILE"), str_lit("The file to compile"));
 	Arg assemblyArg =
 	        ARG_FLAG(
 	                .shortname = 'S',
