@@ -14,3 +14,18 @@ void token_free(Token tok)
 	}
 	str_free(tok.location.filename);
 }
+
+void token_value_show(TokenValue val, FILE* fp)
+{
+	switch (val.kind) {
+	case TK_NONE:
+		(void)fprintf(fp, "none");
+		break;
+	case TK_STR:
+		(void)fprintf(fp, "str(%s)", val.get.str.ptr);
+		break;
+	case TK_NUM:
+		(void)fprintf(fp, "num(%" PRId64 ")", val.get.num);
+		break;
+	}
+}

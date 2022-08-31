@@ -24,7 +24,7 @@ static MaybeChar lexer_advance(Lexer* lexer)
 
 		if (c.value == '\n') {
 			lexer->line++;
-			lexer->column = 0;
+			lexer->column = 1;
 		} else {
 			lexer->column++;
 		}

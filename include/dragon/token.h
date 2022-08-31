@@ -2,7 +2,9 @@
 
 #include "dragon/core/str.h"
 
+#include <inttypes.h>
 #include <stdint.h>
+#include <stdio.h>
 
 typedef enum {
 #define X(x) x,
@@ -44,3 +46,8 @@ typedef struct {
 } Token;
 
 void token_free(Token tok);
+
+#define SOURCE_LOCATION_FMT "%s:%" PRIu64 ":%" PRIu64
+#define SOURCE_LOCATION_ARG(loc) (loc).filename.ptr, (loc).line, (loc).column
+
+void token_value_show(TokenValue val, FILE* fp);

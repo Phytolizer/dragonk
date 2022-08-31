@@ -1,5 +1,8 @@
 #pragma once
 
+#include "dragon/core/sum.h"
+
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -8,6 +11,9 @@ typedef struct {
 	const char* ptr;
 	uint64_t info;
 } str;
+
+#define STR_FMT "%.*s"
+#define STR_ARG(s) (int)str_len(s), (char*)(s).ptr
 
 #define z_str_ref_info(x) ((x) << 1U)
 #define z_str_owner_info(x) (z_str_ref_info(x) | UINT64_C(1))
@@ -58,3 +64,22 @@ str z_str_ref_chars(const char* ptr);
 str str_acquire(const char* ptr, uint64_t len);
 str str_ref_chars(const char* ptr, uint64_t len);
 str str_copy(str s);
+
+static inline str str_shifted(str s, uint64_t n)
+{
+	if (n > str_len(s)) {
+		return str_empty;
+	}
+	return str_ref_chars(s.ptr + n, str_len(s) - n);
+}
+
+typedef MAYBE(uint64_t) StrFindResult;
+
+StrFindResult str_find(str s, char c);
+
+str str_fmt(const char* fmt, ...);
+str str_fmt_va(const char* fmt, va_list args);
+
+bool str_eq(str a, str b);
+
+str str_join(str sep, uint64_t n, const str* strs);

@@ -24,7 +24,7 @@
 	}
 
 #define OK(v) \
-	{ .ok = true, .value = v, }
+	{ .ok = true, .get.value = v, }
 
 #define ERR(e) \
-	{ .ok = false, .error = e, }
+	{ .ok = false, .get.error = e, }
