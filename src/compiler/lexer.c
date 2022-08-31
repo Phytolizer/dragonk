@@ -1,5 +1,6 @@
 #include "dragon/lexer.h"
 
+#include "dragon/core/macro.h"
 #include "dragon/core/sum.h"
 #include "dragon/gperf/keywords.h"
 #include "dragon/gperf/ppkeywords.h"
@@ -155,7 +156,18 @@ static Token lex_pp_keyword(Lexer* lexer)
 	return lexer_add_token(lexer, kw->type, TOKEN_VALUE_NONE);
 }
 
-static str lex_header_name(Lexer* lexer)
+static bool is_header_end(char c, char headerStart)
+{
+	if (headerStart == '<') {
+		return c == '>';
+	}
+	if (headerStart == '"') {
+		return c == '"';
+	}
+	UNREACHABLE();
+}
+
+static str lex_header_name(Lexer* lexer, char headerStart)
 {
 	// first quote already consumed
 	uint64_t start = lexer->pos;
@@ -163,7 +175,7 @@ static str lex_header_name(Lexer* lexer)
 	bool hadError = false;
 	while (true) {
 		MaybeChar c = lexer_peek(lexer, 0);
-		if (!c.present || c.value == '>') {
+		if (!c.present || is_header_end(c.value, headerStart)) {
 			end = lexer->pos;
 			break;
 		}
@@ -217,7 +229,7 @@ static void lex(Lexer* lexer)
 	case '<':
 		if (lexer->canLexHeaderName) {
 			lexer->canLexHeaderName = false;
-			str headerName = lex_header_name(lexer);
+			str headerName = lex_header_name(lexer, c.value);
 			if (str_len(headerName) == 0) {
 				hadError = true;
 			} else {
