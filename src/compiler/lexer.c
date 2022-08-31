@@ -2,6 +2,7 @@
 
 #include "dragon/core/sum.h"
 #include "dragon/gperf/keywords.h"
+#include "dragon/gperf/ppkeywords.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -135,6 +136,42 @@ static Token lex_number(Lexer* lexer)
 	return lexer_add_token(lexer, TT_NUM, TOKEN_VALUE_NUM(n));
 }
 
+static Token lex_pp_keyword(Lexer* lexer)
+{
+	while (true) {
+		MaybeChar c = lexer_peek(lexer, 0);
+		if (!c.present || !char_is_letter(c.value)) {
+			break;
+		}
+		lexer_advance(lexer);
+	}
+
+	str text = lexer_text(lexer);
+	PPKeyword* kw = ppkeyword_lookup(text.ptr, str_len(text));
+	if (kw == NULL) {
+		return lexer_add_token(lexer, TT_ERROR, TOKEN_VALUE_NONE);
+	}
+	lexer->canLexHeaderName = true;
+	return lexer_add_token(lexer, kw->type, TOKEN_VALUE_NONE);
+}
+
+static str lex_header_name(Lexer* lexer)
+{
+	// skip the first quote
+	lexer_advance(lexer);
+	uint64_t start = lexer->pos;
+	while (true) {
+		MaybeChar c = lexer_peek(lexer, 0);
+		if (!c.present || c.value == '>') {
+			break;
+		}
+		lexer_advance(lexer);
+	}
+	// skip the last quote
+	lexer_advance(lexer);
+	return str_ref_chars(&lexer->source.ptr[start], lexer->pos - start - 1);
+}
+
 static void lex(Lexer* lexer)
 {
 	skip_whitespace(lexer);
@@ -165,6 +202,20 @@ static void lex(Lexer* lexer)
 	case ';':
 		lexer->lookahead = lexer_add_token(lexer, TT_SEMI, TOKEN_VALUE_NONE);
 		break;
+	case '#':
+		lexer->lookahead = lex_pp_keyword(lexer);
+		break;
+	case '<':
+		if (lexer->canLexHeaderName) {
+			lexer->canLexHeaderName = false;
+			lexer->lookahead =
+			        lexer_add_token(
+			                lexer,
+			                TT_HEADER_NAME,
+			                TOKEN_VALUE_STR(lex_header_name(lexer))
+			        );
+			break;
+		}
 	default:
 		if (char_is_letter(c.value)) {
 			lexer->lookahead = lex_ident_or_kw(lexer);
@@ -191,6 +242,7 @@ Lexer lexer_new(str source, str filename)
 		},
 		.tokenStart = 0,
 		.pos = 0,
+		.canLexHeaderName = false,
 	};
 	// sets lookahead token
 	lex(&lexer);

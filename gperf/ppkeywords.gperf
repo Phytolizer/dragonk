@@ -1,0 +1,14 @@
+%{
+#include "dragon/token.h"
+%}
+%struct-type
+%define hash-function-name ppkeyword_hash
+%define lookup-function-name ppkeyword_lookup
+%compare-strncmp
+%enum
+%includes
+struct PPKeyword { const char* name; TokenType type; };
+%%
+"#include", PP_INCLUDE
+%%
+typedef struct PPKeyword PPKeyword;

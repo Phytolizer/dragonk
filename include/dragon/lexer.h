@@ -12,6 +12,7 @@ typedef struct {
 	uint64_t line;
 	uint64_t column;
 	Token lookahead;
+	bool canLexHeaderName;
 } Lexer;
 
 Lexer lexer_new(str source, str filename);

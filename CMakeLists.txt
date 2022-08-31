@@ -13,6 +13,11 @@ gperf_generate(
   gperf/keywords.gperf
   ${CMAKE_CURRENT_BINARY_DIR}/include/dragon/gperf/keywords.h dragonk-compiler
 )
+gperf_generate(
+  gperf/ppkeywords.gperf
+  ${CMAKE_CURRENT_BINARY_DIR}/include/dragon/gperf/ppkeywords.h
+  dragonk-compiler
+)
 target_include_directories(
   dragonk-compiler PUBLIC include ${CMAKE_CURRENT_BINARY_DIR}/include
 )
