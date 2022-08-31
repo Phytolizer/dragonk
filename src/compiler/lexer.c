@@ -189,7 +189,8 @@ static str lex_header_name(Lexer* lexer, char headerStart)
 	if (hadError) {
 		return str_empty;
 	}
-	return str_ref_chars(&lexer->source.ptr[start], end - start);
+	str text = str_ref_chars(&lexer->source.ptr[start], end - start);
+	return str_copy(text);
 }
 
 static void lex(Lexer* lexer)
