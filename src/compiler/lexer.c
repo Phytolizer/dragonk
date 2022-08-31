@@ -175,7 +175,11 @@ static str lex_header_name(Lexer* lexer, char headerStart)
 	bool hadError = false;
 	while (true) {
 		MaybeChar c = lexer_peek(lexer, 0);
-		if (!c.present || is_header_end(c.value, headerStart)) {
+		if (!c.present) {
+			hadError = true;
+			break;
+		}
+		if (is_header_end(c.value, headerStart)) {
 			end = lexer->pos;
 			break;
 		}
