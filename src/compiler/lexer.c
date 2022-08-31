@@ -187,6 +187,7 @@ static void lex(Lexer* lexer)
 		lexer->lookahead = lexer_add_token(lexer, TT_EOF, TOKEN_VALUE_NONE);
 		return;
 	}
+	bool hadError = false;
 	switch (c.value) {
 	case '{':
 		lexer->lookahead = lexer_add_token(lexer, TT_LBRACE, TOKEN_VALUE_NONE);
@@ -216,17 +217,21 @@ static void lex(Lexer* lexer)
 			                TT_HEADER_NAME,
 			                TOKEN_VALUE_STR(headerName)
 			        );
-			break;
+		} else  {
+			hadError = true;
 		}
-		// fallthrough
+		break;
 	default:
 		if (char_is_letter(c.value)) {
 			lexer->lookahead = lex_ident_or_kw(lexer);
 		} else if (char_is_digit(c.value)) {
 			lexer->lookahead = lex_number(lexer);
 		} else {
-			lexer->lookahead = lexer_add_token(lexer, TT_ERROR, TOKEN_VALUE_NONE);
+			hadError = true;
 		}
+	}
+	if (hadError) {
+		lexer->lookahead = lexer_add_token(lexer, TT_ERROR, TOKEN_VALUE_NONE);
 	}
 }
 
