@@ -160,16 +160,23 @@ static str lex_header_name(Lexer* lexer)
 	// first quote already consumed
 	uint64_t start = lexer->pos;
 	uint64_t end;
+	bool hadError = false;
 	while (true) {
 		MaybeChar c = lexer_peek(lexer, 0);
 		if (!c.present || c.value == '>') {
 			end = lexer->pos;
 			break;
 		}
+		if (!char_is_letter_or_digit(c.value) && c.value != '.' && c.value != '/') {
+			hadError = true;
+		}
 		lexer_advance(lexer);
 	}
 	// skip the last quote
 	lexer_advance(lexer);
+	if (hadError) {
+		return str_empty;
+	}
 	return str_ref_chars(&lexer->source.ptr[start], end - start);
 }
 
@@ -211,12 +218,16 @@ static void lex(Lexer* lexer)
 		if (lexer->canLexHeaderName) {
 			lexer->canLexHeaderName = false;
 			str headerName = lex_header_name(lexer);
-			lexer->lookahead =
-			        lexer_add_token(
-			                lexer,
-			                TT_HEADER_NAME,
-			                TOKEN_VALUE_STR(headerName)
-			        );
+			if (str_len(headerName) == 0) {
+				hadError = true;
+			} else {
+				lexer->lookahead =
+				        lexer_add_token(
+				                lexer,
+				                TT_HEADER_NAME,
+				                TOKEN_VALUE_STR(headerName)
+				        );
+			}
 		} else  {
 			hadError = true;
 		}
