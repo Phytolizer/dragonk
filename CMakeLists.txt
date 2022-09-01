@@ -12,6 +12,11 @@ add_library(
   dragonk-compiler src/compiler/token.c src/compiler/lexer.c
                    src/compiler/parser.c
 )
+add_custom_command(
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/dragon/gperf
+  COMMAND ${CMAKE_COMMAND} -E make_directory
+          ${CMAKE_CURRENT_BINARY_DIR}/include/dragon/gperf
+)
 gperf_generate(
   gperf/keywords.gperf
   ${CMAKE_CURRENT_BINARY_DIR}/include/dragon/gperf/keywords.h dragonk-compiler
@@ -35,7 +40,9 @@ target_link_libraries(dragonk PRIVATE dragonk-driver)
 
 configure_file(cmake/config.h.cmake-in include/dragon/config.h)
 
-add_executable(dragonk-test tests/test.c tests/parser.c tests/list.c tests/lexer.c)
+add_executable(
+  dragonk-test tests/test.c tests/parser.c tests/list.c tests/lexer.c
+)
 target_link_libraries(dragonk-test PRIVATE dragonk-driver)
 target_include_directories(dragonk-test PRIVATE tests/include)
 

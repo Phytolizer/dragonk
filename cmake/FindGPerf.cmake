@@ -64,8 +64,10 @@ function(gperf_generate input_file output_file _target_or_sources_var)
   get_filename_component(_infile "${input_file}" ABSOLUTE)
   set(_extraopts "${ARGS_GENERATION_FLAGS}")
   separate_arguments(_extraopts)
+  cmake_path(REMOVE_FILENAME output_file OUTPUT_VARIABLE _outfile_dir)
   add_custom_command(
     OUTPUT "${output_file}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${_outfile_dir}"
     COMMAND ${GPerf_EXECUTABLE} ${_extraopts} --output-file=${output_file}
             "${_infile}"
     DEPENDS "${_infile}"
