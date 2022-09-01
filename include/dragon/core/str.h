@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dragon/core/buf.h"
 #include "dragon/core/sum.h"
 
 #include <stdarg.h>
@@ -59,12 +60,13 @@ void str_free(str s);
 #define str_ref(s) \
 	_Generic((s), str : z_str_ref_str, const char* : z_str_ref_chars, char* : z_str_ref_chars)(s)
 
+str str_move(str s);
+
 str z_str_ref_str(str s);
 str z_str_ref_chars(const char* ptr);
 str str_acquire(const char* ptr, uint64_t len);
 str str_ref_chars(const char* ptr, uint64_t len);
 str str_copy(str s);
-
 static inline str str_shifted(str s, uint64_t n)
 {
 	if (n > str_len(s)) {
@@ -82,4 +84,10 @@ str str_fmt_va(const char* fmt, va_list args);
 
 bool str_eq(str a, str b);
 
-str str_join(str sep, uint64_t n, const str* strs);
+typedef BUF(str) StrBuf;
+
+str str_join(str sep, StrBuf strs);
+#define str_cat(...) str_join(str_empty, (StrBuf)BUF_ARRAY(((str[]){__VA_ARGS__})))
+
+#define str_startswith(s, start) str_eq(str_ref_chars(s.ptr, str_len(start)), start)
+#define str_endswith(s, end) str_eq(str_shifted(s, str_len(s) - str_len(end)), end)

@@ -1,0 +1,3 @@
+#pragma once
+
+#define CMAKE_TOPDIR "${PROJECT_SOURCE_DIR}"

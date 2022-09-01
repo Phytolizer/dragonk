@@ -1,5 +1,9 @@
 #pragma once
 
+#include <stdbool.h>
+#include <stdint.h>
+
+#include "dragon/core/str.h"
 #include "dragon/core/sum.h"
 #include "dragon/token.h"
 

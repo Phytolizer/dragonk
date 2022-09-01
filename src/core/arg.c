@@ -169,7 +169,7 @@ str generate_missing_positional_message(ArgBuf args, PositionalInfo positionals)
 		Arg* arg = args.ptr[index];
 		BUF_PUSH(&buf, str_fmt("'" STR_FMT "'", STR_ARG(arg->longname)));
 	}
-	str joined = str_join(str_lit(", "), buf.len, buf.ptr);
+	str joined = str_join(str_lit(", "), buf);
 	for (uint64_t i = 0; i < buf.len; i++) {
 		str_free(buf.ptr[i]);
 	}

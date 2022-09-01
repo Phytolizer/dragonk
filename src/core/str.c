@@ -11,6 +11,19 @@ void str_free(str s)
 	}
 }
 
+str str_move(str s)
+{
+	if (str_is_ref(s)) {
+		char* ptr = malloc(str_len(s) + 1);
+		memcpy(ptr, s.ptr, str_len(s));
+		ptr[str_len(s)] = '\0';
+		return str_acquire(ptr, str_len(s));
+	}
+	str result = s;
+	s.info = z_str_ref_info(str_len(s));
+	return result;
+}
+
 str z_str_ref_str(str s)
 {
 	return (str) {
@@ -123,15 +136,15 @@ bool str_eq(str a, str b)
 	       && memcmp(a.ptr, b.ptr, str_len(a)) == 0;
 }
 
-str str_join(str sep, uint64_t n, const str* strs)
+str str_join(str sep, StrBuf strs)
 {
-	if (n == 0) {
+	if (strs.len == 0) {
 		return str_empty;
 	}
 
-	uint64_t totalLen = (n - 1) * str_len(sep);
-	for (uint64_t i = 0; i < n; i++) {
-		totalLen += str_len(strs[i]);
+	uint64_t totalLen = (strs.len - 1) * str_len(sep);
+	for (uint64_t i = 0; i < strs.len; i++) {
+		totalLen += str_len(strs.ptr[i]);
 	}
 
 	char* ptr = malloc(totalLen + 1);
@@ -140,11 +153,11 @@ str str_join(str sep, uint64_t n, const str* strs)
 	}
 
 	char* dest = ptr;
-	for (uint64_t i = 0; i < n; i++) {
-		str s = strs[i];
+	for (uint64_t i = 0; i < strs.len; i++) {
+		str s = strs.ptr[i];
 		memcpy(dest, s.ptr, str_len(s));
 		dest += str_len(s);
-		if (i < n - 1) {
+		if (i < strs.len - 1) {
 			memcpy(dest, sep.ptr, str_len(sep));
 			dest += str_len(sep);
 		}

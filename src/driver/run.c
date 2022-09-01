@@ -1,10 +1,15 @@
-#include <dragon/core/arg.h>
-#include <dragon/core/file.h>
-#include <dragon/lexer.h>
+#include "dragon/driver/run.h"
 
 #include <stdio.h>
 
-int main(int argc, char** argv)
+#include "dragon/ast.h"
+#include "dragon/core/arg.h"
+#include "dragon/core/buf.h"
+#include "dragon/core/file.h"
+#include "dragon/core/str.h"
+#include "dragon/parser.h"
+
+int run(CArgBuf args)
 {
 	Arg fileArg =
 	        ARG_POS(str_lit("FILE"), str_lit("The file to compile"));
@@ -45,7 +50,7 @@ int main(int argc, char** argv)
 	                           (ArgBuf)BUF_ARRAY(acceptedOptions)
 	                   );
 
-	ArgParseErr err = argparser_parse(&parser, argc, argv);
+	ArgParseErr err = argparser_parse(&parser, (int)args.len, args.ptr);
 	if (helpArg.flagValue) {
 		argparser_show_help(&parser, stdout);
 		return 0;
@@ -66,40 +71,15 @@ int main(int argc, char** argv)
 	}
 	str inputContents = slurpRes.get.value;
 
-	Lexer lexer =
-	        lexer_new(
-	                str_ref(inputContents),
-	                str_ref(fileArg.value)
-	        );
-	for (
-	        Token tok = lexer_first(&lexer);
-	        !lexer_done(&lexer);
-	        tok = lexer_next(&lexer)
-	) {
-		if (tok.type == TT_ERROR) {
-			(void)fprintf(
-			        stderr,
-			        SOURCE_LOCATION_FMT ": unrecognized token: '" STR_FMT "'\n",
-			        SOURCE_LOCATION_ARG(tok.location),
-			        STR_ARG(tok.text)
-			);
-			token_free(tok);
-			str_free(inputContents);
-			return 1;
-		}
-		printf(
-		        SOURCE_LOCATION_FMT ": %s",
-		        SOURCE_LOCATION_ARG(tok.location),
-		        TOKEN_STRINGS[tok.type]
-		);
-		if (tok.value.kind != TK_NONE) {
-			printf(" (value: ");
-			token_value_show(tok.value, stdout);
-			printf(")");
-		}
-		printf("\n");
-		token_free(tok);
+	Parser p = parser_new(inputContents, fileArg.value);
+	ProgramResult program_result = parser_parse(&p);
+	if (!program_result.ok) {
+		(void)fprintf(stderr, "ERROR: " STR_FMT "\n", STR_ARG(program_result.get.error));
+		str_free(program_result.get.error);
+		return 1;
 	}
+
+	Program program = program_result.get.value;
 
 	str_free(inputContents);
 	return 0;

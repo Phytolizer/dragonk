@@ -1,8 +1,11 @@
 #pragma once
 
+#include <stdbool.h>
+#include <stdio.h>
+
 #include "dragon/core/buf.h"
 #include "dragon/core/str.h"
-#include <stdio.h>
+#include "dragon/core/sum.h"
 
 typedef enum {
 	ARGKIND_POS,
@@ -31,7 +34,6 @@ typedef struct {
 	(Arg) { .kind = ARGKIND_FLAG, __VA_ARGS__ }
 
 typedef BUF(Arg*) ArgBuf;
-typedef BUF(str) StrBuf;
 
 typedef struct {
 	ArgBuf args;

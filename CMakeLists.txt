@@ -8,7 +8,10 @@ target_compile_features(dragonk-core PUBLIC c_std_11)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(GPerf REQUIRED)
-add_library(dragonk-compiler src/compiler/token.c src/compiler/lexer.c)
+add_library(
+  dragonk-compiler src/compiler/token.c src/compiler/lexer.c
+                   src/compiler/parser.c
+)
 gperf_generate(
   gperf/keywords.gperf
   ${CMAKE_CURRENT_BINARY_DIR}/include/dragon/gperf/keywords.h dragonk-compiler
@@ -24,5 +27,17 @@ target_include_directories(
 target_compile_features(dragonk-compiler PUBLIC c_std_11)
 target_link_libraries(dragonk-compiler PUBLIC dragonk-core)
 
-add_executable(dragonk-driver src/driver/main.c)
-target_link_libraries(dragonk-driver PRIVATE dragonk-compiler dragonk-core)
+add_library(dragonk-driver src/driver/run.c)
+target_link_libraries(dragonk-driver PUBLIC dragonk-compiler dragonk-core)
+
+add_executable(dragonk src/main.c)
+target_link_libraries(dragonk PRIVATE dragonk-driver)
+
+configure_file(cmake/config.h.cmake-in include/dragon/config.h)
+
+add_executable(dragonk-test tests/test.c tests/parser.c tests/list.c tests/lexer.c)
+target_link_libraries(dragonk-test PRIVATE dragonk-driver)
+target_include_directories(dragonk-test PRIVATE tests/include)
+
+enable_testing()
+add_test(NAME dragonk-test COMMAND dragonk-test)

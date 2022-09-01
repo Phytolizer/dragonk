@@ -1,14 +1,15 @@
 #pragma once
 
-#include "dragon/core/str.h"
-
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
 
+#include "dragon/core/str.h"
+
 typedef enum {
 #define X(x) x,
 #include "dragon/token_type.def"
+
 #undef X
 } TokenType;
 

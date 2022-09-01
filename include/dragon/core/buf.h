@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define BUF(T) \
 	struct { \
@@ -41,6 +42,14 @@
 			(buf)->ptr = realloc((buf)->ptr, (buf)->cap * sizeof(*(buf)->ptr)); \
 		} \
 		(buf)->ptr[(buf)->len++] = (val); \
+	} while (false)
+
+#define BUF_POP_FIRST(buf) \
+	do { \
+		if ((buf)->len > 0) { \
+			(buf)->len--; \
+			memmove((buf)->ptr, (buf)->ptr + 1, (buf)->len * sizeof(*(buf)->ptr)); \
+		} \
 	} while (false)
 
 #define BUF_FIND(buf, val, eq, target) \
