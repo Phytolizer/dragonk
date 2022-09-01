@@ -1,8 +1,13 @@
 #include "dragon/test/parser.h"
+
+#include <stdint.h>
+
+#include "dragon/core/buf.h"
 #include "dragon/core/file.h"
+#include "dragon/core/str.h"
 #include "dragon/parser.h"
-#include "dragon/test/list.h"
 #include "dragon/test/info.h"
+#include "dragon/test/list.h"
 
 static TEST_FUNC(state, parse, str path)
 {

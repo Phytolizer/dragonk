@@ -1,8 +1,10 @@
+#include <inttypes.h>
+#include <stdio.h>
+
+#include "dragon/core/str.h"
 #include "dragon/test/lexer.h"
 #include "dragon/test/parser.h"
 #include "dragon/test/test.h"
-
-#include <inttypes.h>
 
 static void run_all(TestState* state)
 {

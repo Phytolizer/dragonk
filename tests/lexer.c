@@ -1,8 +1,14 @@
 #include "dragon/test/lexer.h"
+
+#include <stdint.h>
+
+#include "dragon/core/buf.h"
 #include "dragon/core/file.h"
+#include "dragon/core/str.h"
 #include "dragon/lexer.h"
 #include "dragon/test/info.h"
 #include "dragon/test/list.h"
+#include "dragon/token.h"
 
 static TEST_FUNC(state, lex, str path)
 {

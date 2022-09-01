@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "dragon/config.h"
+#include "dragon/core/buf.h"
 
 #define path_join(...) str_join(str_lit("/"), (StrBuf)BUF_ARRAY(((str[]) {__VA_ARGS__})))
 
