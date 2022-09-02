@@ -9,10 +9,16 @@ target_include_directories(dragonk-core PUBLIC include)
 target_compile_features(dragonk-core PUBLIC c_std_11)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+include(EmbedFile)
+
+add_executable(embed src/embed/embed.c)
+target_compile_features(embed PRIVATE c_std_11)
+
 find_package(GPerf REQUIRED)
 add_library(
-  dragonk-compiler src/compiler/token.c src/compiler/lexer.c
-                   src/compiler/parser.c src/compiler/ast.c
+  dragonk-compiler
+  src/compiler/token.c src/compiler/lexer.c src/compiler/parser.c
+  src/compiler/ast.c src/compiler/codegen.c
 )
 gperf_generate(
   gperf/keywords.gperf
@@ -23,6 +29,7 @@ gperf_generate(
   ${CMAKE_CURRENT_BINARY_DIR}/include/dragon/gperf/ppkeywords.h
   dragonk-compiler
 )
+embed_file(resources/snippets/header.nasm HEADER_NASM dragonk-compiler)
 target_include_directories(
   dragonk-compiler PUBLIC include ${CMAKE_CURRENT_BINARY_DIR}/include
 )

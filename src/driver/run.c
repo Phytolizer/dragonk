@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "dragon/ast.h"
+#include "dragon/codegen.h"
 #include "dragon/core/arg.h"
 #include "dragon/core/buf.h"
 #include "dragon/core/file.h"
@@ -82,10 +83,17 @@ int run(CArgBuf args)
 
 	Program program = program_result.get.value;
 
+	str outPath = outputArg.value;
+
 	if (dumpAstArg.flagValue) {
 		str s = program_to_str(program);
 		printf(STR_FMT, STR_ARG(s));
 		str_free(s);
+	} else if (assemblyArg.flagValue) {
+		if (str_len(outPath) == 0) {
+			outPath = str_lit("a.s");
+		}
+		codegen_program(program, outPath);
 	}
 
 	program_free(program);
