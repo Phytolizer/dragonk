@@ -4,7 +4,7 @@ project(dragonk LANGUAGES C)
 
 add_library(
   dragonk-core src/core/str.c src/core/file.c src/core/arg.c src/core/strtox.c
-               src/core/process.c
+               src/core/process.c src/core/dir.c
 )
 target_include_directories(dragonk-core PUBLIC include)
 target_compile_features(dragonk-core PUBLIC c_std_11)

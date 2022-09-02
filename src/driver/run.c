@@ -7,6 +7,7 @@
 #include "dragon/codegen.h"
 #include "dragon/core/arg.h"
 #include "dragon/core/buf.h"
+#include "dragon/core/dir.h"
 #include "dragon/core/file.h"
 #include "dragon/core/process.h"
 #include "dragon/core/str.h"
@@ -146,7 +147,7 @@ int run(CArgBuf args)
 		process_destroy(&ldProcessResult.value);
 
 		str_free(objPath);
-		rmdir(tempDir);
+		del_dir(str_ref(tempDir));
 	}
 
 	program_free(program);
