@@ -21,10 +21,7 @@ void del_dir(str path)
 			del_dir(path_join(path, name));
 		} else {
 			str child = path_join(path, name);
-			if (unlink(child.ptr) != 0) {
-				printf("%m\n");
-				abort();
-			}
+			unlink(child.ptr);
 			str_free(child);
 		}
 	}
