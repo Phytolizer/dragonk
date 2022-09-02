@@ -14,11 +14,6 @@ add_library(
   dragonk-compiler src/compiler/token.c src/compiler/lexer.c
                    src/compiler/parser.c src/compiler/ast.c
 )
-add_custom_command(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/dragon/gperf
-  COMMAND ${CMAKE_COMMAND} -E make_directory
-          ${CMAKE_CURRENT_BINARY_DIR}/include/dragon/gperf
-)
 gperf_generate(
   gperf/keywords.gperf
   ${CMAKE_CURRENT_BINARY_DIR}/include/dragon/gperf/keywords.h dragonk-compiler
