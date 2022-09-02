@@ -11,16 +11,16 @@ void str_free(str s)
 	}
 }
 
-str str_move(str s)
+str str_move(str* s)
 {
-	if (str_is_ref(s)) {
-		char* ptr = malloc(str_len(s) + 1);
-		memcpy(ptr, s.ptr, str_len(s));
-		ptr[str_len(s)] = '\0';
-		return str_acquire(ptr, str_len(s));
+	if (str_is_ref(*s)) {
+		char* ptr = malloc(str_len(*s) + 1);
+		memcpy(ptr, s->ptr, str_len(*s));
+		ptr[str_len(*s)] = '\0';
+		return str_acquire(ptr, str_len(*s));
 	}
-	str result = s;
-	s.info = z_str_ref_info(str_len(s));
+	str result = *s;
+	s->info = z_str_ref_info(str_len(*s));
 	return result;
 }
 

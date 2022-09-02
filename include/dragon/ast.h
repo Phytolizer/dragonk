@@ -23,3 +23,5 @@ typedef struct {
 	Header header;
 	Function function;
 } Program;
+
+void program_free(Program program);

@@ -34,6 +34,8 @@ static TEST_FUNC(state, parse, str path)
 		);
 	}
 
+	program_free(result.get.value);
+
 	PASS();
 }
 

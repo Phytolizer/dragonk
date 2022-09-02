@@ -80,6 +80,7 @@ int run(CArgBuf args)
 	}
 
 	Program program = program_result.get.value;
+	program_free(program);
 
 	str_free(inputContents);
 	return 0;

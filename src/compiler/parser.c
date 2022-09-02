@@ -185,10 +185,10 @@ static FunctionResult parse_function(Parser* parser)
 	if (err.present) {
 		return (FunctionResult)ERR(err.value);
 	}
-	str name = str_move(id.get.value.value.get.str);
+	str name = str_move(&id.get.value.value.get.str);
 	token_free(id.get.value);
 	return (FunctionResult)OK(((Function) {
-		.name = id.get.value.value.get.str,
+		.name = name,
 		.statement = stmt.get.value,
 	}));
 }
@@ -205,7 +205,7 @@ static HeaderResult parse_header(Parser* parser)
 	if (!result.ok) {
 		return (HeaderResult)ERR(result.get.error);
 	}
-	str name = str_move(result.get.value.value.get.str);
+	str name = str_move(&result.get.value.value.get.str);
 	token_free(result.get.value);
 	return (HeaderResult)OK(((Header) { .name = name }));
 }

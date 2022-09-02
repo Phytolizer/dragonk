@@ -12,7 +12,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(GPerf REQUIRED)
 add_library(
   dragonk-compiler src/compiler/token.c src/compiler/lexer.c
-                   src/compiler/parser.c
+                   src/compiler/parser.c src/compiler/ast.c
 )
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/dragon/gperf

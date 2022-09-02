@@ -60,7 +60,7 @@ void str_free(str s);
 #define str_ref(s) \
 	_Generic((s), str : z_str_ref_str, const char* : z_str_ref_chars, char* : z_str_ref_chars)(s)
 
-str str_move(str s);
+str str_move(str* s);
 
 str z_str_ref_str(str s);
 str z_str_ref_chars(const char* ptr);
