@@ -1,7 +1,7 @@
 #include "dragon/ast.h"
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <stdlib.h>
 
 typedef struct {
 	uint64_t indent;
@@ -18,6 +18,7 @@ static const char* UNARY_OP_KIND_STRINGS[] = {
 static const char* BINARY_OP_KIND_STRINGS[] = {
 #define X(x) #x,
 #include "dragon/binary_op_kinds.def"
+
 #undef X
 };
 
