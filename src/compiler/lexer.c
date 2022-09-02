@@ -1,11 +1,13 @@
 #include "dragon/lexer.h"
 
+#include <assert.h>
+#include <stdio.h>
+
 #include "dragon/core/macro.h"
+#include "dragon/core/strtox.h"
 #include "dragon/core/sum.h"
 #include "dragon/gperf/keywords.h"
 #include "dragon/gperf/ppkeywords.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 typedef MAYBE(char) MaybeChar;
 
@@ -131,10 +133,11 @@ static Token lex_number(Lexer* lexer)
 		lexer_advance(lexer);
 	}
 
-	// doesn't need to null terminate, strtoll will stop at the first non-digit
+	// doesn't need to null terminate, str2i64 will stop at the first non-digit
 	str text = lexer_text(lexer);
-	long long n = strtoll(text.ptr, NULL, 10);
-	return make_token(lexer, TT_NUM, TOKEN_VALUE_NUM(n));
+	Str2I64Result result = str2i64(text, 10);
+	assert(result.err == 0);
+	return make_token(lexer, TT_NUM, TOKEN_VALUE_NUM(result.value));
 }
 
 static Token lex_pp_keyword(Lexer* lexer)

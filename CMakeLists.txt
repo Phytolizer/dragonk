@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 3.23)
 
 project(dragonk LANGUAGES C)
 
-add_library(dragonk-core src/core/str.c src/core/file.c src/core/arg.c)
+add_library(
+  dragonk-core src/core/str.c src/core/file.c src/core/arg.c src/core/strtox.c
+)
 target_include_directories(dragonk-core PUBLIC include)
 target_compile_features(dragonk-core PUBLIC c_std_11)
 

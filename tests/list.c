@@ -6,6 +6,7 @@
 
 #include "dragon/config.h"
 #include "dragon/core/buf.h"
+#include "dragon/core/strtox.h"
 
 #define path_join(...) str_join(str_lit("/"), (StrBuf)BUF_ARRAY(((str[]) {__VA_ARGS__})))
 
@@ -33,8 +34,11 @@ StrBuf get_tests(uint64_t maxStage)
 			continue;
 		}
 		str namep = str_shifted(name, str_len(prefix));
-		long stage = strtol(namep.ptr, NULL, 10);
-		if (stage <= maxStage) {
+		Str2I64Result stage = str2i64(namep, 10);
+		if (stage.err != 0) {
+			continue;
+		}
+		if (stage.value <= maxStage) {
 			str stagePath = path_join(top, name);
 
 			DIR* stageDir = opendir(stagePath.ptr);
