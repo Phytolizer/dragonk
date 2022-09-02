@@ -83,9 +83,7 @@ str str_copy(str s)
 	memcpy(ptr, str_ptr(s), str_len(s));
 	ptr[str_len(s)] = '\0';
 
-	return (str) {
-		.ptr = ptr, .info = z_str_owner_info(str_len(s))
-	};
+	return str_acquire(ptr, str_len(s));
 }
 
 StrFindResult str_find(str s, char c)
@@ -124,10 +122,7 @@ str str_fmt_va(const char* fmt, va_list args)
 
 	(void)vsnprintf(ptr, (size_t)len + 1, fmt, args);
 
-	return (str) {
-		.ptr = ptr,
-		.info = z_str_owner_info(len),
-	};
+	return str_acquire(ptr, len);
 }
 
 bool str_eq(str a, str b)
@@ -165,8 +160,5 @@ str str_join(str sep, StrBuf strs)
 	}
 	*dest = '\0';
 
-	return (str) {
-		.ptr = ptr,
-		.info = z_str_owner_info(totalLen),
-	};
+	return str_acquire(ptr, totalLen);
 }
