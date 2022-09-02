@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 
+#include "dragon/ast.h"
 #include "dragon/core/buf.h"
 #include "dragon/core/file.h"
 #include "dragon/core/str.h"
@@ -12,27 +13,25 @@
 static TEST_FUNC(state, parse, str path)
 {
 	SlurpFileResult sourceResult = slurp_file(path);
-	if (!sourceResult.ok) {
-		FAIL(
-		        state,
-		        CLEANUP(str_free(sourceResult.get.error)),
-		        STR_FMT,
-		        STR_ARG(sourceResult.get.error)
-		);
-	}
+	TEST_ASSERT(
+	        state,
+	        sourceResult.ok,
+	        CLEANUP(str_free(sourceResult.get.error)),
+	        STR_FMT,
+	        STR_ARG(sourceResult.get.error)
+	);
 
 	Parser parser = parser_new(sourceResult.get.value, str_ref(path));
 	ProgramResult result = parser_parse(&parser);
 	parser_free(parser);
 	str_free(sourceResult.get.value);
-	if (!result.ok) {
-		FAIL(
-		        state,
-		        CLEANUP(str_free(result.get.error)),
-		        "parse failed: " STR_FMT,
-		        STR_ARG(result.get.error)
-		);
-	}
+	TEST_ASSERT(
+	        state,
+	        result.ok,
+	        CLEANUP(str_free(result.get.error)),
+	        "parse failed: " STR_FMT,
+	        STR_ARG(result.get.error)
+	);
 
 	program_free(result.get.value);
 

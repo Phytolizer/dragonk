@@ -4,6 +4,7 @@ project(dragonk LANGUAGES C)
 
 add_library(
   dragonk-core src/core/str.c src/core/file.c src/core/arg.c src/core/strtox.c
+               src/core/process.c
 )
 target_include_directories(dragonk-core PUBLIC include)
 target_compile_features(dragonk-core PUBLIC c_std_11)
@@ -46,6 +47,7 @@ configure_file(cmake/config.h.cmake-in include/dragon/config.h)
 
 add_executable(
   dragonk-test tests/test.c tests/parser.c tests/list.c tests/lexer.c
+               tests/execute.c
 )
 target_link_libraries(dragonk-test PRIVATE dragonk-driver)
 target_include_directories(dragonk-test PRIVATE tests/include)

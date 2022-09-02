@@ -13,26 +13,24 @@
 static TEST_FUNC(state, lex, str path)
 {
 	SlurpFileResult sourceResult = slurp_file(path);
-	if (!sourceResult.ok) {
-		FAIL(
-		        state,
-		        CLEANUP(str_free(sourceResult.get.error)),
-		        STR_FMT,
-		        STR_ARG(sourceResult.get.error)
-		);
-	}
+	TEST_ASSERT(
+	        state,
+	        sourceResult.ok,
+	        CLEANUP(str_free(sourceResult.get.error)),
+	        STR_FMT,
+	        STR_ARG(sourceResult.get.error)
+	);
 
 	Lexer lexer = lexer_new(sourceResult.get.value, str_ref(path));
 	for (Token tok = lexer_first(&lexer); !lexer_done(&lexer); tok = lexer_next(&lexer)) {
-		if (tok.type == TT_ERROR) {
-			FAIL(
-			        state,
-			        CLEANUP(token_free(tok); str_free(sourceResult.get.value)),
-			        "lex failed on " SOURCE_LOCATION_FMT ": '" STR_FMT "'",
-			        SOURCE_LOCATION_ARG(tok.location),
-			        STR_ARG(tok.text)
-			);
-		}
+		TEST_ASSERT(
+		        state,
+		        tok.type != TT_ERROR,
+		        CLEANUP(token_free(tok); str_free(sourceResult.get.value)),
+		        "lex failed on " SOURCE_LOCATION_FMT ": '" STR_FMT "'",
+		        SOURCE_LOCATION_ARG(tok.location),
+		        STR_ARG(tok.text)
+		);
 		token_free(tok);
 	}
 

@@ -1,12 +1,14 @@
 #include "dragon/driver/run.h"
 
 #include <stdio.h>
+#include <unistd.h>
 
 #include "dragon/ast.h"
 #include "dragon/codegen.h"
 #include "dragon/core/arg.h"
 #include "dragon/core/buf.h"
 #include "dragon/core/file.h"
+#include "dragon/core/process.h"
 #include "dragon/core/str.h"
 #include "dragon/parser.h"
 
@@ -94,6 +96,57 @@ int run(CArgBuf args)
 			outPath = str_lit("a.s");
 		}
 		codegen_program(program, outPath);
+	} else {
+		if (str_len(outPath) == 0) {
+			outPath = str_lit("a.out");
+		}
+		char templ[] = "dragonk-XXXXXX";
+		char* tempDir = mkdtemp(templ);
+		str tempPath = path_join(str_ref(tempDir), str_lit("a.s"));
+		codegen_program(program, tempPath);
+		str objPath = path_join(str_ref(tempDir), str_lit("a.o"));
+		// *INDENT-OFF*
+		ProcessCreateResult nasmProcessResult = process_run(
+			(ProcessCStrBuf)BUF_ARRAY(((const char* []) {
+				"nasm",
+				"-f",
+				"elf64",
+				tempPath.ptr,
+				"-o",
+				objPath.ptr
+			})),
+			PROCESS_OPTION_SEARCH_USER_PATH | PROCESS_OPTION_COMBINED_STDOUT_STDERR
+		);
+		// *INDENT-ON*
+		if (!nasmProcessResult.present) {
+			(void)fprintf(stderr, "ERROR: running nasm failed\n");
+			rmdir(tempDir);
+			return 1;
+		}
+		process_destroy(&nasmProcessResult.value);
+
+		str_free(tempPath);
+
+		// *INDENT-OFF*
+		ProcessCreateResult ldProcessResult = process_run(
+		        (ProcessCStrBuf)BUF_ARRAY(((const char* []) {
+		                "ld",
+		                objPath.ptr,
+		                "-o",
+		                outPath.ptr
+		        })),
+		        PROCESS_OPTION_SEARCH_USER_PATH | PROCESS_OPTION_COMBINED_STDOUT_STDERR
+		);
+		// *INDENT-ON*
+		if (!ldProcessResult.present) {
+			(void)fprintf(stderr, "ERROR: running ld failed\n");
+			rmdir(tempDir);
+			return 1;
+		}
+		process_destroy(&ldProcessResult.value);
+
+		str_free(objPath);
+		rmdir(tempDir);
 	}
 
 	program_free(program);

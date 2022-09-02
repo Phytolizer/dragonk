@@ -8,8 +8,6 @@
 #include "dragon/core/buf.h"
 #include "dragon/core/strtox.h"
 
-#define path_join(...) str_join(str_lit("/"), (StrBuf)BUF_ARRAY(((str[]) {__VA_ARGS__})))
-
 StrBuf get_tests(uint64_t maxStage)
 {
 	StrBuf result = BUF_NEW;

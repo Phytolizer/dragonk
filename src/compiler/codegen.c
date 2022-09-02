@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 #include <stdio.h>
+#include <unistd.h>
 
 static void codegen_expr(FILE* fp, Expression expr)
 {
@@ -28,4 +29,6 @@ void codegen_program(Program program, str outPath)
 	(void)fwrite(HEADER_NASM, 1, sizeof(HEADER_NASM), fp);
 
 	codegen_func(fp, program.function);
+
+	(void)fclose(fp);
 }

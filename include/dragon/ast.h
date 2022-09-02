@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 #include "dragon/core/str.h"
 
 typedef struct {

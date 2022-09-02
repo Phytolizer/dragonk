@@ -89,5 +89,7 @@ typedef BUF(str) StrBuf;
 str str_join(str sep, StrBuf strs);
 #define str_cat(...) str_join(str_empty, (StrBuf)BUF_ARRAY(((str[]){__VA_ARGS__})))
 
+#define path_join(...) str_join(str_lit("/"), (StrBuf)BUF_ARRAY(((str[]) {__VA_ARGS__})))
+
 #define str_startswith(s, start) str_eq(str_ref_chars(s.ptr, str_len(start)), start)
 #define str_endswith(s, end) str_eq(str_shifted(s, str_len(s) - str_len(end)), end)
