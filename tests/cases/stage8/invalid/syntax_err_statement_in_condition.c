@@ -1,5 +1,6 @@
-int main() {
-    while(int a) {
-        2;
-    }
+int main()
+{
+	while (int a) {
+		2;
+	}
 }

@@ -1,9 +1,11 @@
 int foo();
 
-int main() {
-    return foo();
+int main()
+{
+	return foo();
 }
 
-int foo() {
-    return 3;
+int foo()
+{
+	return 3;
 }

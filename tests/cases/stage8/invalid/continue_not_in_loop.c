@@ -1,3 +1,4 @@
-int main() {
-    continue;
+int main()
+{
+	continue;
 }

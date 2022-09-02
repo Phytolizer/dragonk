@@ -1,5 +1,6 @@
-int main() {
-    do
-        3;
-    while (4)
-}
+int main()
+{
+	do
+	{ 3; }
+	while (4)
+	}

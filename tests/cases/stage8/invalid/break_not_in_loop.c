@@ -1,3 +1,4 @@
-int main() {
-    break;
+int main()
+{
+	break;
 }

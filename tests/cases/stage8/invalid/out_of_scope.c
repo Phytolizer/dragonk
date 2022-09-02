@@ -1,8 +1,9 @@
-int main() {
+int main()
+{
 
-    while (1) {
-        int a = 2;
-    }
+	while (1) {
+		int a = 2;
+	}
 
-    return a;
+	return a;
 }
