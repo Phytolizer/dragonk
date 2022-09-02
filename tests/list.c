@@ -60,7 +60,7 @@ StrBuf get_tests(uint64_t maxStage)
 				if (!str_endswith(testName, str_lit(".c"))) {
 					continue;
 				}
-				str testPath = path_join(stagePath, testName);
+				str testPath = path_join(str_ref(stagePath), testName);
 				BUF_PUSH(&result, testPath);
 			}
 

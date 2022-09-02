@@ -24,4 +24,5 @@ typedef struct {
 	Function function;
 } Program;
 
+str program_to_str(Program program);
 void program_free(Program program);

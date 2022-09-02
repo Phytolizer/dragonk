@@ -161,6 +161,7 @@ str str_join(str sep, StrBuf strs)
 			memcpy(dest, sep.ptr, str_len(sep));
 			dest += str_len(sep);
 		}
+		str_free(s);
 	}
 	*dest = '\0';
 

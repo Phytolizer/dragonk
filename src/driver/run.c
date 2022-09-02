@@ -80,8 +80,14 @@ int run(CArgBuf args)
 	}
 
 	Program program = program_result.get.value;
-	program_free(program);
 
+	if (dumpAstArg.flagValue) {
+		str s = program_to_str(program);
+		printf(STR_FMT, STR_ARG(s));
+		str_free(s);
+	}
+
+	program_free(program);
 	str_free(inputContents);
 	return 0;
 }
