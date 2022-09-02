@@ -210,6 +210,7 @@ static ExpressionResult parse_multiplicative_expression(Parser* parser)
 	while ((op = match(parser, (TokenTypeBuf)BUF_ARRAY(multiplicativeTypes))).present) {
 		ExpressionResult right = parse_unary_expression(parser);
 		if (!right.ok) {
+			expression_free(result);
 			return right;
 		}
 		BinaryOpExpression* binary = malloc(sizeof(BinaryOpExpression));
@@ -244,6 +245,7 @@ static ExpressionResult parse_additive_expression(Parser* parser)
 	while ((op = match(parser, (TokenTypeBuf)BUF_ARRAY(additiveTypes))).present) {
 		ExpressionResult right = parse_multiplicative_expression(parser);
 		if (!right.ok) {
+			expression_free(result);
 			return right;
 		}
 		BinaryOpExpression* binary = malloc(sizeof(BinaryOpExpression));
@@ -279,6 +281,7 @@ static StatementResult parse_statement(Parser* parser)
 	}
 	err = expect_ignore(parser, TT_SEMI);
 	if (err.present) {
+		expression_free(expr.get.value);
 		return (StatementResult)ERR(err.value);
 	}
 	return (StatementResult)OK((Statement) { .expression = expr.get.value });
@@ -298,22 +301,28 @@ static FunctionResult parse_function(Parser* parser)
 	}
 	err = expect_ignore(parser, TT_LPAREN);
 	if (err.present) {
+		token_free(id.get.value);
 		return (FunctionResult)ERR(err.value);
 	}
 	err = expect_ignore(parser, TT_RPAREN);
 	if (err.present) {
+		token_free(id.get.value);
 		return (FunctionResult)ERR(err.value);
 	}
 	err = expect_ignore(parser, TT_LBRACE);
 	if (err.present) {
+		token_free(id.get.value);
 		return (FunctionResult)ERR(err.value);
 	}
 	StatementResult stmt = parse_statement(parser);
 	if (!stmt.ok) {
+		token_free(id.get.value);
 		return (FunctionResult)ERR(stmt.get.error);
 	}
 	err = expect_ignore(parser, TT_RBRACE);
 	if (err.present) {
+		expression_free(stmt.get.value.expression);
+		token_free(id.get.value);
 		return (FunctionResult)ERR(err.value);
 	}
 	str name = str_move(&id.get.value.value.get.str);
@@ -337,5 +346,8 @@ ProgramResult parser_parse(Parser* parser)
 
 void parser_free(Parser parser)
 {
+	for (uint64_t i = 0; i < parser.buffer.len; i++) {
+		token_free(parser.buffer.ptr[i]);
+	}
 	BUF_FREE(parser.buffer);
 }

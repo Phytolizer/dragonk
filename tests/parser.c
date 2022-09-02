@@ -41,6 +41,7 @@ static TEST_FUNC(state, parse, str path, bool isValid)
 		        CLEANUP(program_free(result.get.value)),
 		        "parse succeeded on invalid input!"
 		);
+		str_free(result.get.error);
 		PASS();
 	}
 

@@ -35,6 +35,7 @@ static void walk_stage_dir(TestCaseBuf* buf, TestDirInfo* info, str path)
 				info->isValidDir = true;
 			}
 			walk_stage_dir(buf, info, str_ref(childPath));
+			str_free(childPath);
 		} else if (entry->d_type == DT_REG) {
 			if (str_endswith(name, str_lit(".c"))) {
 				TestCase testCase;
