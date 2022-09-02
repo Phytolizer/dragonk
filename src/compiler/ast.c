@@ -9,7 +9,9 @@ typedef struct {
 
 static const char* UNARY_OP_KIND_STRINGS[] = {
 #define X(x) #x,
+#include "dragon/expr_types.def"
 #include "dragon/unary_op_kinds.def"
+
 #undef X
 };
 

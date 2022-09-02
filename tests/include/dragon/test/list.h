@@ -1,7 +1,9 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stdint.h>
 
+#include "dragon/core/buf.h"
 #include "dragon/core/str.h"
 
 typedef struct {

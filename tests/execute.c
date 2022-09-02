@@ -1,10 +1,16 @@
 #include "dragon/test/execute.h"
 
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <unistd.h>
+
+#include "dragon/core/buf.h"
 #include "dragon/core/process.h"
+#include "dragon/core/str.h"
 #include "dragon/driver/run.h"
 #include "dragon/test/info.h"
 #include "dragon/test/list.h"
-#include <unistd.h>
 
 static TEST_FUNC(state, execute, str testPath, bool isValid)
 {

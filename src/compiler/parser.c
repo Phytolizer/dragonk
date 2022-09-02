@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "dragon/core/macro.h"
 #include "dragon/core/sum.h"

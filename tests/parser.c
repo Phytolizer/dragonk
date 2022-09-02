@@ -1,5 +1,6 @@
 #include "dragon/test/parser.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "dragon/ast.h"

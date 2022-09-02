@@ -1,7 +1,7 @@
 #include "dragon/driver/run.h"
 
 #include <stdio.h>
-#include <unistd.h>
+#include <stdlib.h>
 
 #include "dragon/ast.h"
 #include "dragon/codegen.h"

@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "dragon/core/buf.h"
 #include "dragon/driver/run.h"
 

@@ -1,9 +1,9 @@
 #include "dragon/codegen.h"
-#include "embedded/header.nasm.h"
 
 #include <inttypes.h>
 #include <stdio.h>
-#include <unistd.h>
+
+#include "embedded/header.nasm.h"
 
 static void codegen_constant_expr(FILE* fp, ConstantExpression* expr)
 {
