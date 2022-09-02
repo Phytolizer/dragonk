@@ -36,6 +36,39 @@ static void codegen_unary_op_expr(FILE* fp, UnaryOpExpression* expr)
 	}
 }
 
+static void codegen_binary_op_expr(FILE* fp, BinaryOpExpression* expr)
+{
+	codegen_expr(fp, expr->left);
+	codegen_expr(fp, expr->right);
+	switch (expr->kind) {
+	case BINARY_OP_KIND_ADDITION:
+		(void)fprintf(fp, "    pop rdi\n");
+		(void)fprintf(fp, "    pop rax\n");
+		(void)fprintf(fp, "    add rax, rdi\n");
+		(void)fprintf(fp, "    push rax\n");
+		break;
+	case BINARY_OP_KIND_SUBTRACTION:
+		(void)fprintf(fp, "    pop rdi\n");
+		(void)fprintf(fp, "    pop rax\n");
+		(void)fprintf(fp, "    sub rax, rdi\n");
+		(void)fprintf(fp, "    push rax\n");
+		break;
+	case BINARY_OP_KIND_MULTIPLICATION:
+		(void)fprintf(fp, "    pop rdi\n");
+		(void)fprintf(fp, "    pop rax\n");
+		(void)fprintf(fp, "    imul rax, rdi\n");
+		(void)fprintf(fp, "    push rax\n");
+		break;
+	case BINARY_OP_KIND_DIVISION:
+		(void)fprintf(fp, "    pop rdi\n");
+		(void)fprintf(fp, "    pop rax\n");
+		(void)fprintf(fp, "    cqo\n");
+		(void)fprintf(fp, "    idiv rdi\n");
+		(void)fprintf(fp, "    push rax\n");
+		break;
+	}
+}
+
 static void codegen_expr(FILE* fp, Expression* expr)
 {
 	switch (expr->type) {
@@ -44,6 +77,9 @@ static void codegen_expr(FILE* fp, Expression* expr)
 		break;
 	case EXPRESSION_TYPE_UNARY_OP:
 		codegen_unary_op_expr(fp, (UnaryOpExpression*)expr);
+		break;
+	case EXPRESSION_TYPE_BINARY_OP:
+		codegen_binary_op_expr(fp, (BinaryOpExpression*)expr);
 		break;
 	}
 }

@@ -138,25 +138,22 @@ static UnaryOpKind unary_op_kind_from_token_type(TokenType type)
 	}
 }
 
-static ExpressionResult parse_expression(Parser* parser)
+static ExpressionResult parse_expression(Parser* parser);
+
+static ExpressionResult parse_primary_expression(Parser* parser)
 {
-	const TokenType unaryOps[] = {
-		TT_MINUS,
-		TT_TILDE,
-		TT_BANG,
-	};
-	MaybeToken op = match(parser, (TokenTypeBuf)BUF_ARRAY(unaryOps));
-	if (op.present) {
-		ExpressionResult right = parse_expression(parser);
-		if (!right.ok) {
-			return right;
+	if (look(parser, TT_LPAREN)) {
+		advance_ignore(parser);
+		ExpressionResult result = parse_expression(parser);
+		if (!result.ok) {
+			return result;
 		}
-		UnaryOpExpression* unary = malloc(sizeof(UnaryOpExpression));
-		unary->base.type = EXPRESSION_TYPE_UNARY_OP;
-		unary->kind = unary_op_kind_from_token_type(op.value.type);
-		token_free(op.value);
-		unary->operand = right.get.value;
-		return (ExpressionResult)OK(&unary->base);
+		ExpectErr err = expect_ignore(parser, TT_RPAREN);
+		if (err.present) {
+			expression_free(result.get.value);
+			return (ExpressionResult)ERR(err.value);
+		}
+		return result;
 	}
 	TokenResult result = expect(parser, TT_NUM);
 	if (!result.ok) {
@@ -169,6 +166,103 @@ static ExpressionResult parse_expression(Parser* parser)
 	constant->base.type = EXPRESSION_TYPE_CONSTANT;
 	constant->number = num;
 	return (ExpressionResult)OK(&constant->base);
+}
+
+static ExpressionResult parse_unary_expression(Parser* parser)
+{
+	const TokenType unaryOps[] = {
+		TT_MINUS,
+		TT_TILDE,
+		TT_BANG,
+	};
+	MaybeToken op = match(parser, (TokenTypeBuf)BUF_ARRAY(unaryOps));
+	if (op.present) {
+		ExpressionResult right = parse_unary_expression(parser);
+		if (!right.ok) {
+			return right;
+		}
+		UnaryOpExpression* unary = malloc(sizeof(UnaryOpExpression));
+		unary->base.type = EXPRESSION_TYPE_UNARY_OP;
+		unary->kind = unary_op_kind_from_token_type(op.value.type);
+		unary->operand = right.get.value;
+		token_free(op.value);
+		return (ExpressionResult)OK(&unary->base);
+	}
+
+	return parse_primary_expression(parser);
+}
+
+static ExpressionResult parse_multiplicative_expression(Parser* parser)
+{
+	ExpressionResult left = parse_unary_expression(parser);
+	if (!left.ok) {
+		return left;
+	}
+
+	Expression* result = left.get.value;
+	MaybeToken op;
+
+	TokenType multiplicativeTypes[] = {
+		TT_STAR,
+		TT_SLASH,
+	};
+
+	while ((op = match(parser, (TokenTypeBuf)BUF_ARRAY(multiplicativeTypes))).present) {
+		ExpressionResult right = parse_unary_expression(parser);
+		if (!right.ok) {
+			return right;
+		}
+		BinaryOpExpression* binary = malloc(sizeof(BinaryOpExpression));
+		binary->base.type = EXPRESSION_TYPE_BINARY_OP;
+		binary->kind = op.value.type == TT_STAR
+		               ? BINARY_OP_KIND_MULTIPLICATION
+		               : BINARY_OP_KIND_DIVISION;
+		binary->left = result;
+		binary->right = right.get.value;
+		result = &binary->base;
+		token_free(op.value);
+	}
+
+	return (ExpressionResult)OK(result);
+}
+
+static ExpressionResult parse_additive_expression(Parser* parser)
+{
+	ExpressionResult left = parse_multiplicative_expression(parser);
+	if (!left.ok) {
+		return left;
+	}
+
+	Expression* result = left.get.value;
+	MaybeToken op;
+
+	TokenType additiveTypes[] = {
+		TT_PLUS,
+		TT_MINUS,
+	};
+
+	while ((op = match(parser, (TokenTypeBuf)BUF_ARRAY(additiveTypes))).present) {
+		ExpressionResult right = parse_multiplicative_expression(parser);
+		if (!right.ok) {
+			return right;
+		}
+		BinaryOpExpression* binary = malloc(sizeof(BinaryOpExpression));
+		binary->base.type = EXPRESSION_TYPE_BINARY_OP;
+		binary->kind = op.value.type == TT_PLUS
+		               ? BINARY_OP_KIND_ADDITION
+		               : BINARY_OP_KIND_SUBTRACTION;
+		binary->left = result;
+		binary->right = right.get.value;
+		result = &binary->base;
+		token_free(op.value);
+	}
+
+	return (ExpressionResult)OK(result);
+}
+
+static ExpressionResult parse_expression(Parser* parser)
+{
+	return parse_additive_expression(parser);
 }
 
 typedef RESULT(Statement, str) StatementResult;

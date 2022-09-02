@@ -1,3 +1,3 @@
 #pragma once
 
-#define IMPLEMENTED_STAGES 2
+#define IMPLEMENTED_STAGES 3

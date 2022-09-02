@@ -246,6 +246,15 @@ static void lex(Lexer* lexer)
 	case '!':
 		lexer->lookahead = make_token(lexer, TT_BANG, TOKEN_VALUE_NONE);
 		break;
+	case '+':
+		lexer->lookahead = make_token(lexer, TT_PLUS, TOKEN_VALUE_NONE);
+		break;
+	case '*':
+		lexer->lookahead = make_token(lexer, TT_STAR, TOKEN_VALUE_NONE);
+		break;
+	case '/':
+		lexer->lookahead = make_token(lexer, TT_SLASH, TOKEN_VALUE_NONE);
+		break;
 	case '<':
 		if (lexer->canLexHeaderName) {
 			lexer->canLexHeaderName = false;

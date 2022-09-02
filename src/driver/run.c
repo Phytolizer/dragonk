@@ -81,6 +81,7 @@ int run(CArgBuf args, FILE* out, FILE* err)
 	if (!program_result.ok) {
 		(void)fprintf(err, "ERROR: " STR_FMT "\n", STR_ARG(program_result.get.error));
 		str_free(program_result.get.error);
+		str_free(inputContents);
 		return 1;
 	}
 
@@ -142,6 +143,7 @@ int run(CArgBuf args, FILE* out, FILE* err)
 		if (!ldProcessResult.present || ldProcessResult.value.returnCode != 0) {
 			(void)fprintf(err, "ERROR: running ld failed\n");
 			del_dir(str_ref(tempDir));
+			str_free(inputContents);
 			return 1;
 		}
 		process_destroy(&ldProcessResult.value);

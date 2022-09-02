@@ -26,6 +26,19 @@ typedef struct {
 	Expression* operand;
 } UnaryOpExpression;
 
+typedef enum {
+#define X(x) BINARY_OP_KIND_##x,
+#include "dragon/binary_op_kinds.def"
+#undef X
+} BinaryOpKind;
+
+typedef struct {
+	Expression base;
+	Expression* left;
+	BinaryOpKind kind;
+	Expression* right;
+} BinaryOpExpression;
+
 typedef struct {
 	Expression base;
 	int64_t number;
@@ -46,3 +59,4 @@ typedef struct {
 
 str program_to_str(Program program);
 void program_free(Program program);
+void expression_free(Expression* expression);

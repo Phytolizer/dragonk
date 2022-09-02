@@ -1,6 +1,7 @@
 #include "dragon/ast.h"
 
 #include <inttypes.h>
+#include <stdio.h>
 
 typedef struct {
 	uint64_t indent;
@@ -9,9 +10,14 @@ typedef struct {
 
 static const char* UNARY_OP_KIND_STRINGS[] = {
 #define X(x) #x,
-#include "dragon/expr_types.def"
 #include "dragon/unary_op_kinds.def"
 
+#undef X
+};
+
+static const char* BINARY_OP_KIND_STRINGS[] = {
+#define X(x) #x,
+#include "dragon/binary_op_kinds.def"
 #undef X
 };
 
@@ -41,8 +47,15 @@ static str expr_to_str(Expression* expr)
 		return str_fmt("%" PRId64, ((ConstantExpression*)expr)->number);
 	case EXPRESSION_TYPE_UNARY_OP: {
 		UnaryOpExpression* unary = (UnaryOpExpression*)expr;
-		str s = str_fmt("%s", UNARY_OP_KIND_STRINGS[unary->kind]);
+		str s = str_fmt("%s ", UNARY_OP_KIND_STRINGS[unary->kind]);
 		s = str_cat(s, expr_to_str(unary->operand));
+		return s;
+	}
+	case EXPRESSION_TYPE_BINARY_OP: {
+		BinaryOpExpression* binary = (BinaryOpExpression*)expr;
+		str s = str_cat(str_lit("("), expr_to_str(binary->left));
+		s = str_fmt(" %s ", BINARY_OP_KIND_STRINGS[binary->kind]);
+		s = str_cat(s, expr_to_str(binary->right), str_lit(")"));
 		return s;
 	}
 	}
@@ -75,7 +88,28 @@ str program_to_str(Program program)
 	return s;
 }
 
+void expression_free(Expression* expression)
+{
+	switch (expression->type) {
+	case EXPRESSION_TYPE_CONSTANT:
+		break;
+	case EXPRESSION_TYPE_UNARY_OP: {
+		UnaryOpExpression* unary = (UnaryOpExpression*)expression;
+		expression_free(unary->operand);
+		break;
+	}
+	case EXPRESSION_TYPE_BINARY_OP: {
+		BinaryOpExpression* binary = (BinaryOpExpression*)expression;
+		expression_free(binary->left);
+		expression_free(binary->right);
+		break;
+	}
+	}
+	free(expression);
+}
+
 void program_free(Program program)
 {
 	str_free(program.function.name);
+	expression_free(program.function.statement.expression);
 }
