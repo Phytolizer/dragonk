@@ -73,6 +73,7 @@ int run(CArgBuf args)
 
 	Parser p = parser_new(inputContents, fileArg.value);
 	ProgramResult program_result = parser_parse(&p);
+	parser_free(p);
 	if (!program_result.ok) {
 		(void)fprintf(stderr, "ERROR: " STR_FMT "\n", STR_ARG(program_result.get.error));
 		str_free(program_result.get.error);
