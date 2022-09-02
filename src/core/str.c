@@ -107,10 +107,10 @@ str str_fmt(const char* fmt, ...)
 
 str str_fmt_va(const char* fmt, va_list args)
 {
-	va_list args_copy;
-	va_copy(args_copy, args);
+	va_list argsCopy;
+	va_copy(argsCopy, args);
 
-	int len = vsnprintf(NULL, 0, fmt, args_copy);
+	int len = vsnprintf(NULL, 0, fmt, argsCopy);
 	if (len < 0) {
 		return str_empty;
 	}
