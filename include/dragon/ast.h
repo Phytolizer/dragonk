@@ -18,11 +18,6 @@ typedef struct {
 } Function;
 
 typedef struct {
-	str name;
-} Header;
-
-typedef struct {
-	Header header;
 	Function function;
 } Program;
 

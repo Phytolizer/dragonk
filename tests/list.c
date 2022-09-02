@@ -8,11 +8,51 @@
 #include "dragon/core/buf.h"
 #include "dragon/core/strtox.h"
 
-StrBuf get_tests(uint64_t maxStage)
-{
-	StrBuf result = BUF_NEW;
+typedef struct {
+	bool isValidDir;
+	bool isInvalidDir;
+} TestDirInfo;
 
-	str top = str_lit(CMAKE_TOPDIR "/tests");
+static void walk_stage_dir(TestCaseBuf* buf, TestDirInfo* info, str path)
+{
+	DIR* dir = opendir(path.ptr);
+	if (dir == NULL) {
+		return;
+	}
+
+	struct dirent* entry;
+	while ((entry = readdir(dir)) != NULL) {
+		str name = str_ref(entry->d_name);
+		if (str_eq(name, str_lit(".")) || str_eq(name, str_lit(".."))) {
+			continue;
+		}
+
+		str childPath = path_join(path, name);
+		if (entry->d_type == DT_DIR) {
+			if (str_eq(name, str_lit("invalid"))) {
+				info->isInvalidDir = true;
+			} else if (str_eq(name, str_lit("valid"))) {
+				info->isValidDir = true;
+			}
+			walk_stage_dir(buf, info, str_ref(childPath));
+		} else if (entry->d_type == DT_REG) {
+			if (str_endswith(name, str_lit(".c"))) {
+				TestCase testCase;
+				testCase.path = childPath;
+				testCase.isValid = info->isValidDir;
+				BUF_PUSH(buf, testCase);
+			}
+		}
+	}
+
+	closedir(dir);
+}
+
+TestCaseBuf get_tests(uint64_t maxStage)
+{
+	TestCaseBuf result = BUF_NEW;
+
+	str top = str_lit(CMAKE_TOPDIR "/tests/cases");
 
 	DIR* topdir = opendir(top.ptr);
 	if (topdir == NULL) {
@@ -38,31 +78,8 @@ StrBuf get_tests(uint64_t maxStage)
 		}
 		if (stage.value <= maxStage) {
 			str stagePath = path_join(top, name);
-
-			DIR* stageDir = opendir(stagePath.ptr);
-			if (stageDir == NULL) {
-				(void)fprintf(
-				        stderr,
-				        "failed to open stage directory: " STR_FMT "\n",
-				        STR_ARG(stagePath)
-				);
-				exit(1);
-			}
-
-			struct dirent* stageEntry;
-			while ((stageEntry = readdir(stageDir)) != NULL) {
-				if (stageEntry->d_type != DT_REG) {
-					continue;
-				}
-				str testName = str_ref(stageEntry->d_name);
-				if (!str_endswith(testName, str_lit(".c"))) {
-					continue;
-				}
-				str testPath = path_join(str_ref(stagePath), testName);
-				BUF_PUSH(&result, testPath);
-			}
-
-			closedir(stageDir);
+			TestDirInfo info = {0};
+			walk_stage_dir(&result, &info, str_ref(stagePath));
 			str_free(stagePath);
 		}
 	}

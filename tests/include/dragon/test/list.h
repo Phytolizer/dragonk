@@ -4,4 +4,11 @@
 
 #include "dragon/core/str.h"
 
-StrBuf get_tests(uint64_t maxStage);
+typedef struct {
+	str path;
+	bool isValid;
+} TestCase;
+
+typedef BUF(TestCase) TestCaseBuf;
+
+TestCaseBuf get_tests(uint64_t maxStage);

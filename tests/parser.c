@@ -10,7 +10,7 @@
 #include "dragon/test/info.h"
 #include "dragon/test/list.h"
 
-static TEST_FUNC(state, parse, str path)
+static TEST_FUNC(state, parse, str path, bool isValid)
 {
 	SlurpFileResult sourceResult = slurp_file(path);
 	TEST_ASSERT(
@@ -25,13 +25,23 @@ static TEST_FUNC(state, parse, str path)
 	ProgramResult result = parser_parse(&parser);
 	parser_free(parser);
 	str_free(sourceResult.get.value);
-	TEST_ASSERT(
-	        state,
-	        result.ok,
-	        CLEANUP(str_free(result.get.error)),
-	        "parse failed: " STR_FMT,
-	        STR_ARG(result.get.error)
-	);
+	if (isValid) {
+		TEST_ASSERT(
+		        state,
+		        result.ok,
+		        CLEANUP(str_free(result.get.error)),
+		        "parse failed: " STR_FMT,
+		        STR_ARG(result.get.error)
+		);
+	} else {
+		TEST_ASSERT(
+		        state,
+		        !result.ok,
+		        CLEANUP(program_free(result.get.value)),
+		        "parse succeeded on invalid input!"
+		);
+		PASS();
+	}
 
 	program_free(result.get.value);
 
@@ -40,11 +50,12 @@ static TEST_FUNC(state, parse, str path)
 
 SUITE_FUNC(state, parser)
 {
-	StrBuf tests = get_tests(IMPLEMENTED_STAGES);
+	TestCaseBuf tests = get_tests(IMPLEMENTED_STAGES);
 
 	for (uint64_t i = 0; i < tests.len; i++) {
-		RUN_TEST(state, parse, str_ref(tests.ptr[i]), str_ref(tests.ptr[i]));
-		str_free(tests.ptr[i]);
+		TestCase test = tests.ptr[i];
+		RUN_TEST(state, parse, str_ref(test.path), str_ref(test.path), test.isValid);
+		str_free(test.path);
 	}
 	BUF_FREE(tests);
 }

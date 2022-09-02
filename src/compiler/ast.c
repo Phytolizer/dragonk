@@ -60,6 +60,5 @@ str program_to_str(Program program)
 
 void program_free(Program program)
 {
-	str_free(program.header.name);
 	str_free(program.function.name);
 }

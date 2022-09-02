@@ -13,7 +13,7 @@
 #include "dragon/core/str.h"
 #include "dragon/parser.h"
 
-int run(CArgBuf args)
+int run(CArgBuf args, FILE* out, FILE* err)
 {
 	Arg fileArg =
 	        ARG_POS(str_lit("FILE"), str_lit("The file to compile"));
@@ -54,22 +54,22 @@ int run(CArgBuf args)
 	                           (ArgBuf)BUF_ARRAY(acceptedOptions)
 	                   );
 
-	ArgParseErr err = argparser_parse(&parser, (int)args.len, args.ptr);
+	ArgParseErr argParseErr = argparser_parse(&parser, (int)args.len, args.ptr);
 	if (helpArg.flagValue) {
 		argparser_show_help(&parser, stdout);
 		return 0;
 	}
 
-	if (err.present) {
+	if (argParseErr.present) {
 		argparser_show_help(&parser, stderr);
-		(void)fprintf(stderr, "ERROR: " STR_FMT "\n", STR_ARG(err.value));
-		str_free(err.value);
+		(void)fprintf(err, "ERROR: " STR_FMT "\n", STR_ARG(argParseErr.value));
+		str_free(argParseErr.value);
 		return 1;
 	}
 
 	SlurpFileResult slurpRes = slurp_file(fileArg.value);
 	if (!slurpRes.ok) {
-		(void)fprintf(stderr, "ERROR: " STR_FMT "\n", STR_ARG(slurpRes.get.error));
+		(void)fprintf(err, "ERROR: " STR_FMT "\n", STR_ARG(slurpRes.get.error));
 		str_free(slurpRes.get.error);
 		return 1;
 	}
@@ -79,7 +79,7 @@ int run(CArgBuf args)
 	ProgramResult program_result = parser_parse(&p);
 	parser_free(p);
 	if (!program_result.ok) {
-		(void)fprintf(stderr, "ERROR: " STR_FMT "\n", STR_ARG(program_result.get.error));
+		(void)fprintf(err, "ERROR: " STR_FMT "\n", STR_ARG(program_result.get.error));
 		str_free(program_result.get.error);
 		return 1;
 	}
@@ -90,7 +90,7 @@ int run(CArgBuf args)
 
 	if (dumpAstArg.flagValue) {
 		str s = program_to_str(program);
-		printf(STR_FMT, STR_ARG(s));
+		(void)fprintf(out, STR_FMT, STR_ARG(s));
 		str_free(s);
 	} else if (assemblyArg.flagValue) {
 		if (str_len(outPath) == 0) {
@@ -120,7 +120,7 @@ int run(CArgBuf args)
 		);
 		// *INDENT-ON*
 		if (!nasmProcessResult.present) {
-			(void)fprintf(stderr, "ERROR: running nasm failed\n");
+			(void)fprintf(err, "ERROR: running nasm failed\n");
 			rmdir(tempDir);
 			return 1;
 		}
@@ -140,7 +140,7 @@ int run(CArgBuf args)
 		);
 		// *INDENT-ON*
 		if (!ldProcessResult.present) {
-			(void)fprintf(stderr, "ERROR: running ld failed\n");
+			(void)fprintf(err, "ERROR: running ld failed\n");
 			rmdir(tempDir);
 			return 1;
 		}

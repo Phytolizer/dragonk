@@ -41,11 +41,12 @@ static TEST_FUNC(state, lex, str path)
 
 SUITE_FUNC(state, lexer)
 {
-	StrBuf tests = get_tests(IMPLEMENTED_STAGES);
+	TestCaseBuf tests = get_tests(IMPLEMENTED_STAGES);
 
 	for (uint64_t i = 0; i < tests.len; i++) {
-		RUN_TEST(state, lex, str_ref(tests.ptr[i]), str_ref(tests.ptr[i]));
-		str_free(tests.ptr[i]);
+		TestCase test = tests.ptr[i];
+		RUN_TEST(state, lex, str_ref(test.path), str_ref(test.path));
+		str_free(test.path);
 	}
 	BUF_FREE(tests);
 }

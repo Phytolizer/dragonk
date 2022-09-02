@@ -193,35 +193,13 @@ static FunctionResult parse_function(Parser* parser)
 	}));
 }
 
-typedef RESULT(Header, str) HeaderResult;
-
-static HeaderResult parse_header(Parser* parser)
-{
-	ExpectErr err = expect_ignore(parser, PP_INCLUDE);
-	if (err.present) {
-		return (HeaderResult)ERR(err.value);
-	}
-	TokenResult result = expect(parser, TT_HEADER_NAME);
-	if (!result.ok) {
-		return (HeaderResult)ERR(result.get.error);
-	}
-	str name = str_move(&result.get.value.value.get.str);
-	token_free(result.get.value);
-	return (HeaderResult)OK(((Header) { .name = name }));
-}
-
 ProgramResult parser_parse(Parser* parser)
 {
-	HeaderResult header = parse_header(parser);
-	if (!header.ok) {
-		return (ProgramResult)ERR(header.get.error);
-	}
 	FunctionResult result = parse_function(parser);
 	if (!result.ok) {
 		return (ProgramResult)ERR(result.get.error);
 	}
 	return (ProgramResult)OK(((Program) {
-		.header = header.get.value,
 		.function = result.get.value,
 	}));
 }

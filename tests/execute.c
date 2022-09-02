@@ -4,18 +4,46 @@
 #include "dragon/driver/run.h"
 #include "dragon/test/info.h"
 #include "dragon/test/list.h"
+#include <unistd.h>
 
-static TEST_FUNC(state, execute, str testPath)
+static TEST_FUNC(state, execute, str testPath, bool isValid)
 {
 	char* args[] = { "dragon", "-o", "dragon.out", (char*)testPath.ptr };
-	int res = run((CArgBuf)BUF_ARRAY(args));
-	TEST_ASSERT(
-	        state,
-	        res == 0,
-	        CLEANUP((void)remove("dragon.out")),
-	        "dragon failed to compile with exit code %d",
-	        res
-	);
+	int outpipe[2];
+	int errpipe[2];
+	TEST_ASSERT(state, pipe(outpipe) == 0, NO_CLEANUP, "failed to create pipe: %m");
+	TEST_ASSERT(state, pipe(errpipe) == 0, NO_CLEANUP, "failed to create pipe: %m");
+	FILE* out = fdopen(outpipe[1], "w");
+	FILE* err = fdopen(errpipe[1], "w");
+	int res = run((CArgBuf)BUF_ARRAY(args), out, err);
+	close(outpipe[1]);
+	close(errpipe[1]);
+	if (isValid) {
+		if (res != 0) {
+			FILE* errIn = fdopen(errpipe[0], "r");
+			char* line = NULL;
+			size_t len = 0;
+			ssize_t nread;
+			while ((nread = getline(&line, &len, errIn)) != -1) {
+				(void)fprintf(stderr, "%s", line);
+			}
+			FAIL(
+			        state,
+			        CLEANUP((void)remove("dragon.out")),
+			        "dragon failed to compile " STR_FMT,
+			        STR_ARG(testPath)
+			);
+		}
+	} else {
+		TEST_ASSERT(
+		        state,
+		        res != 0,
+		        CLEANUP((void)remove("dragon.out")),
+		        "dragon compiled invalid test " STR_FMT,
+		        STR_ARG(testPath)
+		);
+		PASS();
+	}
 
 	const char* runArgs[] = { "./dragon.out" };
 	ProcessCreateResult dragonResult =
@@ -80,10 +108,17 @@ static TEST_FUNC(state, execute, str testPath)
 
 SUITE_FUNC(state, execute)
 {
-	StrBuf tests = get_tests(IMPLEMENTED_STAGES);
+	TestCaseBuf tests = get_tests(IMPLEMENTED_STAGES);
 	for (uint64_t i = 0; i < tests.len; i++) {
-		RUN_TEST(state, execute, str_ref(tests.ptr[i]), str_ref(tests.ptr[i]));
-		str_free(tests.ptr[i]);
+		TestCase test = tests.ptr[i];
+		RUN_TEST(
+		        state,
+		        execute,
+		        str_ref(test.path),
+		        str_ref(test.path),
+		        test.isValid
+		);
+		str_free(test.path);
 	}
 	BUF_FREE(tests);
 }
