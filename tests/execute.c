@@ -16,8 +16,8 @@ static TEST_FUNC(state, execute, str testPath, bool isValid)
 	FILE* out = fdopen(outpipe[1], "w");
 	FILE* err = fdopen(errpipe[1], "w");
 	int res = run((CArgBuf)BUF_ARRAY(args), out, err);
-	close(outpipe[1]);
-	close(errpipe[1]);
+	(void)fclose(out);
+	(void)fclose(err);
 	if (isValid) {
 		if (res != 0) {
 			FILE* errIn = fdopen(errpipe[0], "r");

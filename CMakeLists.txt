@@ -51,6 +51,9 @@ add_executable(
 )
 target_link_libraries(dragonk-test PRIVATE dragonk-driver)
 target_include_directories(dragonk-test PRIVATE tests/include)
+if(TEST_ABORT_ON_FAILURE)
+  target_compile_definitions(dragonk-test PRIVATE "TEST_ABORT_ON_FAILURE=1")
+endif()
 
 enable_testing()
 add_test(NAME dragonk-test COMMAND dragonk-test)

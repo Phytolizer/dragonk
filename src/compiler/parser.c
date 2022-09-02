@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "dragon/core/macro.h"
 #include "dragon/core/sum.h"
 
 static MaybeToken peek(Parser* parser, uint64_t n)
@@ -94,11 +95,11 @@ static ExpectErr expect_ignore(Parser* parser, TokenType type)
 
 static bool look(Parser* parser, TokenType type)
 {
-	MaybeToken token = peek(parser, 1);
+	MaybeToken token = peek(parser, 0);
 	return token.present && token.value.type == type;
 }
 
-typedef BUF(TokenType) TokenTypeBuf;
+typedef BUF(const TokenType) TokenTypeBuf;
 
 static MaybeToken match(Parser* parser, TokenTypeBuf types)
 {
@@ -120,10 +121,42 @@ Parser parser_new(str source, str filename)
 	return parser;
 }
 
-typedef RESULT(Expression, str) ExpressionResult;
+typedef RESULT(Expression*, str) ExpressionResult;
+
+static UnaryOpKind unary_op_kind_from_token_type(TokenType type)
+{
+	switch (type) {
+	case TT_MINUS:
+		return UNARY_OP_KIND_ARITHMETIC_NEGATION;
+	case TT_BANG:
+		return UNARY_OP_KIND_LOGICAL_NEGATION;
+	case TT_TILDE:
+		return UNARY_OP_KIND_BITWISE_NEGATION;
+	default:
+		UNREACHABLE();
+	}
+}
 
 static ExpressionResult parse_expression(Parser* parser)
 {
+	const TokenType unaryOps[] = {
+		TT_MINUS,
+		TT_TILDE,
+		TT_BANG,
+	};
+	MaybeToken op = match(parser, (TokenTypeBuf)BUF_ARRAY(unaryOps));
+	if (op.present) {
+		ExpressionResult right = parse_expression(parser);
+		if (!right.ok) {
+			return right;
+		}
+		UnaryOpExpression* unary = malloc(sizeof(UnaryOpExpression));
+		unary->base.type = EXPRESSION_TYPE_UNARY_OP;
+		unary->kind = unary_op_kind_from_token_type(op.value.type);
+		token_free(op.value);
+		unary->operand = right.get.value;
+		return (ExpressionResult)OK(&unary->base);
+	}
 	TokenResult result = expect(parser, TT_NUM);
 	if (!result.ok) {
 		return (ExpressionResult)ERR(result.get.error);
@@ -131,7 +164,10 @@ static ExpressionResult parse_expression(Parser* parser)
 	Token tok = result.get.value;
 	int64_t num = tok.value.get.num;
 	token_free(tok);
-	return (ExpressionResult)OK((Expression) { .number = num });
+	ConstantExpression* constant = malloc(sizeof(ConstantExpression));
+	constant->base.type = EXPRESSION_TYPE_CONSTANT;
+	constant->number = num;
+	return (ExpressionResult)OK(&constant->base);
 }
 
 typedef RESULT(Statement, str) StatementResult;

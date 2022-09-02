@@ -119,9 +119,9 @@ int run(CArgBuf args, FILE* out, FILE* err)
 			PROCESS_OPTION_SEARCH_USER_PATH | PROCESS_OPTION_COMBINED_STDOUT_STDERR
 		);
 		// *INDENT-ON*
-		if (!nasmProcessResult.present) {
+		if (!nasmProcessResult.present || nasmProcessResult.value.returnCode != 0) {
 			(void)fprintf(err, "ERROR: running nasm failed\n");
-			rmdir(tempDir);
+			del_dir(str_ref(tempDir));
 			return 1;
 		}
 		process_destroy(&nasmProcessResult.value);
@@ -139,9 +139,9 @@ int run(CArgBuf args, FILE* out, FILE* err)
 		        PROCESS_OPTION_SEARCH_USER_PATH | PROCESS_OPTION_COMBINED_STDOUT_STDERR
 		);
 		// *INDENT-ON*
-		if (!ldProcessResult.present) {
+		if (!ldProcessResult.present || ldProcessResult.value.returnCode != 0) {
 			(void)fprintf(err, "ERROR: running ld failed\n");
-			rmdir(tempDir);
+			del_dir(str_ref(tempDir));
 			return 1;
 		}
 		process_destroy(&ldProcessResult.value);

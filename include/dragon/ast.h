@@ -4,12 +4,35 @@
 
 #include "dragon/core/str.h"
 
-typedef struct {
-	int64_t number;
-} Expression;
+typedef enum {
+#define X(x) EXPRESSION_TYPE_##x,
+#include "dragon/expr_types.def"
+#undef X
+} ExpressionType;
 
 typedef struct {
-	Expression expression;
+	ExpressionType type;
+} Expression;
+
+typedef enum {
+#define X(x) UNARY_OP_KIND_##x,
+#include "dragon/unary_op_kinds.def"
+#undef X
+} UnaryOpKind;
+
+typedef struct {
+	Expression base;
+	UnaryOpKind kind;
+	Expression* operand;
+} UnaryOpExpression;
+
+typedef struct {
+	Expression base;
+	int64_t number;
+} ConstantExpression;
+
+typedef struct {
+	Expression* expression;
 } Statement;
 
 typedef struct {

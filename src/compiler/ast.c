@@ -7,6 +7,12 @@ typedef struct {
 	str indentStr;
 } AstEmitter;
 
+static const char* UNARY_OP_KIND_STRINGS[] = {
+#define X(x) #x,
+#include "dragon/unary_op_kinds.def"
+#undef X
+};
+
 static void emitter_indent(AstEmitter* em)
 {
 	em->indent++;
@@ -26,9 +32,18 @@ static str emit_line(AstEmitter* em, str line)
 	return str_cat(str_ref(em->indentStr), line, str_lit("\n"));
 }
 
-static str expr_to_str(Expression expr)
+static str expr_to_str(Expression* expr)
 {
-	return str_fmt("%" PRId64, expr.number);
+	switch (expr->type) {
+	case EXPRESSION_TYPE_CONSTANT:
+		return str_fmt("%" PRId64, ((ConstantExpression*)expr)->number);
+	case EXPRESSION_TYPE_UNARY_OP: {
+		UnaryOpExpression* unary = (UnaryOpExpression*)expr;
+		str s = str_fmt("%s", UNARY_OP_KIND_STRINGS[unary->kind]);
+		s = str_cat(s, expr_to_str(unary->operand));
+		return s;
+	}
+	}
 }
 
 static str stmt_to_str(Statement stmt)

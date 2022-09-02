@@ -5,18 +5,28 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#ifndef TEST_ABORT_ON_FAILURE
+#define TEST_ABORT_ON_FAILURE 0
+#endif
+
 typedef struct {
 	uint64_t passed;
 	uint64_t failed;
 	uint64_t assertions;
 } TestState;
 
+#if TEST_ABORT_ON_FAILURE
+#define TEST_ABORT() abort()
+#else
+#define TEST_ABORT()
+#endif
 #define TEST_ASSERT(state, test, cleanup, ...) \
 	do { \
 		++(state)->assertions; \
 		if (!(test)) { \
 			str message = str_fmt(__VA_ARGS__); \
 			cleanup; \
+			TEST_ABORT(); \
 			return message; \
 		} \
 	} while (false)
