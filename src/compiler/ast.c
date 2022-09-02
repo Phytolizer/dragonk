@@ -34,8 +34,7 @@ static str expr_to_str(Expression expr)
 static str stmt_to_str(Statement stmt)
 {
 	str s = str_empty;
-	s = str_cat(s, str_lit("RETURN INT "));
-	s = str_cat(s, expr_to_str(stmt.expression));
+	s = str_cat(s, str_lit("RETURN INT "), expr_to_str(stmt.expression));
 	return s;
 }
 
