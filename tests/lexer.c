@@ -51,7 +51,13 @@ SUITE_FUNC(state, lexer)
 
 	for (uint64_t i = 0; i < tests.len; i++) {
 		TestCase test = tests.ptr[i];
-		RUN_TEST(state, lex, str_ref(test.path), str_ref(test.path), test.skipOnFailure);
+		RUN_TEST(
+		        state,
+		        lex,
+		        str_fmt("lexing " STR_FMT, STR_ARG(test.path)),
+		        str_ref(test.path),
+		        test.skipOnFailure
+		);
 		str_free(test.path);
 	}
 	BUF_FREE(tests);

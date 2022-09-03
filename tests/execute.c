@@ -123,7 +123,7 @@ SUITE_FUNC(state, execute)
 		RUN_TEST(
 		        state,
 		        execute,
-		        str_ref(test.path),
+		        str_fmt("executing " STR_FMT, STR_ARG(test.path)),
 		        str_ref(test.path),
 		        test.isValid,
 		        test.skipOnFailure

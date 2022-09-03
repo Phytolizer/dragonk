@@ -67,7 +67,7 @@ SUITE_FUNC(state, parser)
 		RUN_TEST(
 		        state,
 		        parse,
-		        str_ref(test.path),
+		        str_fmt("parsing " STR_FMT, STR_ARG(test.path)),
 		        str_ref(test.path),
 		        test.isValid,
 		        test.skipOnFailure
