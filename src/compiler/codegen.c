@@ -84,6 +84,15 @@ static void codegen_binary_op_expr(Compiler* compiler, BinaryOpExpression* expr)
 		(void)fprintf(fp, "    idiv rdi\n");
 		(void)fprintf(fp, "    push rax\n");
 		break;
+	case BINARY_OP_KIND_MODULUS:
+		codegen_expr(compiler, expr->left);
+		codegen_expr(compiler, expr->right);
+		(void)fprintf(fp, "    pop rdi\n");
+		(void)fprintf(fp, "    pop rax\n");
+		(void)fprintf(fp, "    cqo\n");
+		(void)fprintf(fp, "    idiv rdi\n");
+		(void)fprintf(fp, "    push rdx\n");
+		break;
 	case BINARY_OP_KIND_LOGICAL_AND: {
 		codegen_expr(compiler, expr->left);
 		(void)fprintf(fp, "    pop rax\n");
@@ -183,6 +192,46 @@ static void codegen_binary_op_expr(Compiler* compiler, BinaryOpExpression* expr)
 		(void)fprintf(fp, "    cmp rax, rdi\n");
 		(void)fprintf(fp, "    setne al\n");
 		(void)fprintf(fp, "    movzx rax, al\n");
+		(void)fprintf(fp, "    push rax\n");
+		break;
+	case BINARY_OP_KIND_BITWISE_AND:
+		codegen_expr(compiler, expr->left);
+		codegen_expr(compiler, expr->right);
+		(void)fprintf(fp, "    pop rdi\n");
+		(void)fprintf(fp, "    pop rax\n");
+		(void)fprintf(fp, "    and rax, rdi\n");
+		(void)fprintf(fp, "    push rax\n");
+		break;
+	case BINARY_OP_KIND_BITWISE_XOR:
+		codegen_expr(compiler, expr->left);
+		codegen_expr(compiler, expr->right);
+		(void)fprintf(fp, "    pop rdi\n");
+		(void)fprintf(fp, "    pop rax\n");
+		(void)fprintf(fp, "    xor rax, rdi\n");
+		(void)fprintf(fp, "    push rax\n");
+		break;
+	case BINARY_OP_KIND_BITWISE_OR:
+		codegen_expr(compiler, expr->left);
+		codegen_expr(compiler, expr->right);
+		(void)fprintf(fp, "    pop rdi\n");
+		(void)fprintf(fp, "    pop rax\n");
+		(void)fprintf(fp, "    or rax, rdi\n");
+		(void)fprintf(fp, "    push rax\n");
+		break;
+	case BINARY_OP_KIND_BITWISE_SHIFT_LEFT:
+		codegen_expr(compiler, expr->left);
+		codegen_expr(compiler, expr->right);
+		(void)fprintf(fp, "    pop rcx\n");
+		(void)fprintf(fp, "    pop rax\n");
+		(void)fprintf(fp, "    shl rax, cl\n");
+		(void)fprintf(fp, "    push rax\n");
+		break;
+	case BINARY_OP_KIND_BITWISE_SHIFT_RIGHT:
+		codegen_expr(compiler, expr->left);
+		codegen_expr(compiler, expr->right);
+		(void)fprintf(fp, "    pop rcx\n");
+		(void)fprintf(fp, "    pop rax\n");
+		(void)fprintf(fp, "    sar rax, cl\n");
 		(void)fprintf(fp, "    push rax\n");
 		break;
 	}

@@ -259,7 +259,7 @@ static void lex(Lexer* lexer)
 			lexer_advance(lexer);
 			lexer->lookahead = make_token(lexer, TT_AMP_AMP, TOKEN_VALUE_NONE);
 		} else {
-			hadError = true;
+			lexer->lookahead = make_token(lexer, TT_AMP, TOKEN_VALUE_NONE);
 		}
 		break;
 	}
@@ -269,10 +269,13 @@ static void lex(Lexer* lexer)
 			lexer_advance(lexer);
 			lexer->lookahead = make_token(lexer, TT_PIPE_PIPE, TOKEN_VALUE_NONE);
 		} else {
-			hadError = true;
+			lexer->lookahead = make_token(lexer, TT_PIPE, TOKEN_VALUE_NONE);
 		}
 		break;
 	}
+	case '^':
+		lexer->lookahead = make_token(lexer, TT_CARET, TOKEN_VALUE_NONE);
+		break;
 	case '=': {
 		MaybeChar c2 = lexer_peek(lexer, 0);
 		if (c2.present && c2.value == '=') {
@@ -288,6 +291,9 @@ static void lex(Lexer* lexer)
 		if (c2.present && c2.value == '=') {
 			lexer_advance(lexer);
 			lexer->lookahead = make_token(lexer, TT_RIGHT_EQUAL, TOKEN_VALUE_NONE);
+		} else if (c2.present && c2.value == '>') {
+			lexer_advance(lexer);
+			lexer->lookahead = make_token(lexer, TT_RIGHT_RIGHT, TOKEN_VALUE_NONE);
 		} else {
 			lexer->lookahead = make_token(lexer, TT_RIGHT, TOKEN_VALUE_NONE);
 		}
@@ -301,6 +307,9 @@ static void lex(Lexer* lexer)
 		break;
 	case '/':
 		lexer->lookahead = make_token(lexer, TT_SLASH, TOKEN_VALUE_NONE);
+		break;
+	case '%':
+		lexer->lookahead = make_token(lexer, TT_PERCENT, TOKEN_VALUE_NONE);
 		break;
 	case '<':
 		if (lexer->canLexHeaderName) {
@@ -321,6 +330,9 @@ static void lex(Lexer* lexer)
 			if (c2.present && c2.value == '=') {
 				lexer_advance(lexer);
 				lexer->lookahead = make_token(lexer, TT_LEFT_EQUAL, TOKEN_VALUE_NONE);
+			} else if (c2.present && c2.value == '<') {
+				lexer_advance(lexer);
+				lexer->lookahead = make_token(lexer, TT_LEFT_LEFT, TOKEN_VALUE_NONE);
 			} else {
 				lexer->lookahead = make_token(lexer, TT_LEFT, TOKEN_VALUE_NONE);
 			}

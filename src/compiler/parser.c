@@ -112,6 +112,8 @@ static MaybeToken match(Parser* parser, TokenTypeBuf types)
 	return (MaybeToken)NOTHING;
 }
 
+#define MATCH(parser, ...) match(parser, (TokenTypeBuf)BUF_ARRAY(((const TokenType[]) {__VA_ARGS__})))
+
 Parser parser_new(str source, str filename)
 {
 	Parser parser = {
@@ -170,13 +172,8 @@ static ExpressionResult parse_primary_expression(Parser* parser)
 
 static ExpressionResult parse_unary_expression(Parser* parser)
 {
-	const TokenType unaryOps[] = {
-		TT_MINUS,
-		TT_TILDE,
-		TT_BANG,
-	};
-	MaybeToken op = match(parser, (TokenTypeBuf)BUF_ARRAY(unaryOps));
-	if (op.present) {
+	MaybeToken op;
+	if ((op = MATCH(parser, TT_MINUS, TT_TILDE, TT_BANG)).present) {
 		ExpressionResult right = parse_unary_expression(parser);
 		if (!right.ok) {
 			return right;
@@ -202,12 +199,7 @@ static ExpressionResult parse_multiplicative_expression(Parser* parser)
 	Expression* result = left.get.value;
 	MaybeToken op;
 
-	TokenType multiplicativeTypes[] = {
-		TT_STAR,
-		TT_SLASH,
-	};
-
-	while ((op = match(parser, (TokenTypeBuf)BUF_ARRAY(multiplicativeTypes))).present) {
+	while ((op = MATCH(parser, TT_STAR, TT_SLASH, TT_PERCENT)).present) {
 		ExpressionResult right = parse_unary_expression(parser);
 		if (!right.ok) {
 			expression_free(result);
@@ -215,9 +207,19 @@ static ExpressionResult parse_multiplicative_expression(Parser* parser)
 		}
 		BinaryOpExpression* binary = malloc(sizeof(BinaryOpExpression));
 		binary->base.type = EXPRESSION_TYPE_BINARY_OP;
-		binary->kind = op.value.type == TT_STAR
-		               ? BINARY_OP_KIND_MULTIPLICATION
-		               : BINARY_OP_KIND_DIVISION;
+		switch (op.value.type) {
+		case TT_STAR:
+			binary->kind = BINARY_OP_KIND_MULTIPLICATION;
+			break;
+		case TT_SLASH:
+			binary->kind = BINARY_OP_KIND_DIVISION;
+			break;
+		case TT_PERCENT:
+			binary->kind = BINARY_OP_KIND_MODULUS;
+			break;
+		default:
+			UNREACHABLE();
+		}
 		binary->left = result;
 		binary->right = right.get.value;
 		result = &binary->base;
@@ -237,12 +239,7 @@ static ExpressionResult parse_additive_expression(Parser* parser)
 	Expression* result = left.get.value;
 	MaybeToken op;
 
-	TokenType additiveTypes[] = {
-		TT_PLUS,
-		TT_MINUS,
-	};
-
-	while ((op = match(parser, (TokenTypeBuf)BUF_ARRAY(additiveTypes))).present) {
+	while ((op = MATCH(parser, TT_PLUS, TT_MINUS)).present) {
 		ExpressionResult right = parse_multiplicative_expression(parser);
 		if (!right.ok) {
 			expression_free(result);
@@ -262,7 +259,7 @@ static ExpressionResult parse_additive_expression(Parser* parser)
 	return (ExpressionResult)OK(result);
 }
 
-static ExpressionResult parse_relational_expression(Parser* parser)
+static ExpressionResult parse_shift_expression(Parser* parser)
 {
 	ExpressionResult left = parse_additive_expression(parser);
 	if (!left.ok) {
@@ -272,15 +269,38 @@ static ExpressionResult parse_relational_expression(Parser* parser)
 	Expression* result = left.get.value;
 	MaybeToken op;
 
-	TokenType relationalTypes[] = {
-		TT_LEFT,
-		TT_RIGHT,
-		TT_LEFT_EQUAL,
-		TT_RIGHT_EQUAL,
-	};
-
-	while ((op = match(parser, (TokenTypeBuf)BUF_ARRAY(relationalTypes))).present) {
+	while ((op = MATCH(parser, TT_LEFT_LEFT, TT_RIGHT_RIGHT)).present) {
 		ExpressionResult right = parse_additive_expression(parser);
+		if (!right.ok) {
+			expression_free(result);
+			return right;
+		}
+		BinaryOpExpression* binary = malloc(sizeof(BinaryOpExpression));
+		binary->base.type = EXPRESSION_TYPE_BINARY_OP;
+		binary->kind = op.value.type == TT_LEFT_LEFT
+		               ? BINARY_OP_KIND_BITWISE_SHIFT_LEFT
+		               : BINARY_OP_KIND_BITWISE_SHIFT_RIGHT;
+		binary->left = result;
+		binary->right = right.get.value;
+		result = &binary->base;
+		token_free(op.value);
+	}
+
+	return (ExpressionResult)OK(result);
+}
+
+static ExpressionResult parse_relational_expression(Parser* parser)
+{
+	ExpressionResult left = parse_shift_expression(parser);
+	if (!left.ok) {
+		return left;
+	}
+
+	Expression* result = left.get.value;
+	MaybeToken op;
+
+	while ((op = MATCH(parser, TT_LEFT, TT_RIGHT, TT_LEFT_EQUAL, TT_RIGHT_EQUAL)).present) {
+		ExpressionResult right = parse_shift_expression(parser);
 		if (!right.ok) {
 			expression_free(result);
 			return right;
@@ -322,12 +342,7 @@ static ExpressionResult parse_equality_expression(Parser* parser)
 	Expression* result = left.get.value;
 	MaybeToken op;
 
-	TokenType equalityTypes[] = {
-		TT_EQUAL_EQUAL,
-		TT_BANG_EQUAL,
-	};
-
-	while ((op = match(parser, (TokenTypeBuf)BUF_ARRAY(equalityTypes))).present) {
+	while ((op = MATCH(parser, TT_EQUAL_EQUAL, TT_BANG_EQUAL)).present) {
 		ExpressionResult right = parse_relational_expression(parser);
 		if (!right.ok) {
 			expression_free(result);
@@ -347,7 +362,7 @@ static ExpressionResult parse_equality_expression(Parser* parser)
 	return (ExpressionResult)OK(result);
 }
 
-static ExpressionResult parse_logical_and_expression(Parser* parser)
+static ExpressionResult parse_bitwise_and_expression(Parser* parser)
 {
 	ExpressionResult left = parse_equality_expression(parser);
 	if (!left.ok) {
@@ -355,10 +370,94 @@ static ExpressionResult parse_logical_and_expression(Parser* parser)
 	}
 
 	Expression* result = left.get.value;
+	MaybeToken op;
 
-	while (look(parser, TT_AMP_AMP)) {
-		advance_ignore(parser);
+	while ((op = MATCH(parser, TT_AMP)).present) {
 		ExpressionResult right = parse_equality_expression(parser);
+		if (!right.ok) {
+			expression_free(result);
+			return right;
+		}
+		BinaryOpExpression* binary = malloc(sizeof(BinaryOpExpression));
+		binary->base.type = EXPRESSION_TYPE_BINARY_OP;
+		binary->kind = BINARY_OP_KIND_BITWISE_AND;
+		binary->left = result;
+		binary->right = right.get.value;
+		result = &binary->base;
+		token_free(op.value);
+	}
+
+	return (ExpressionResult)OK(result);
+}
+
+static ExpressionResult parse_bitwise_xor_expression(Parser* parser)
+{
+	ExpressionResult left = parse_bitwise_and_expression(parser);
+	if (!left.ok) {
+		return left;
+	}
+
+	Expression* result = left.get.value;
+	MaybeToken op;
+
+	while ((op = MATCH(parser, TT_CARET)).present) {
+		ExpressionResult right = parse_bitwise_and_expression(parser);
+		if (!right.ok) {
+			expression_free(result);
+			return right;
+		}
+		BinaryOpExpression* binary = malloc(sizeof(BinaryOpExpression));
+		binary->base.type = EXPRESSION_TYPE_BINARY_OP;
+		binary->kind = BINARY_OP_KIND_BITWISE_XOR;
+		binary->left = result;
+		binary->right = right.get.value;
+		result = &binary->base;
+		token_free(op.value);
+	}
+
+	return (ExpressionResult)OK(result);
+}
+
+static ExpressionResult parse_bitwise_or_expression(Parser* parser)
+{
+	ExpressionResult left = parse_bitwise_xor_expression(parser);
+	if (!left.ok) {
+		return left;
+	}
+
+	Expression* result = left.get.value;
+	MaybeToken op;
+
+	while ((op = MATCH(parser, TT_PIPE)).present) {
+		ExpressionResult right = parse_bitwise_xor_expression(parser);
+		if (!right.ok) {
+			expression_free(result);
+			return right;
+		}
+		BinaryOpExpression* binary = malloc(sizeof(BinaryOpExpression));
+		binary->base.type = EXPRESSION_TYPE_BINARY_OP;
+		binary->kind = BINARY_OP_KIND_BITWISE_OR;
+		binary->left = result;
+		binary->right = right.get.value;
+		result = &binary->base;
+		token_free(op.value);
+	}
+
+	return (ExpressionResult)OK(result);
+}
+
+static ExpressionResult parse_logical_and_expression(Parser* parser)
+{
+	ExpressionResult left = parse_bitwise_or_expression(parser);
+	if (!left.ok) {
+		return left;
+	}
+
+	Expression* result = left.get.value;
+	MaybeToken op;
+
+	while ((op = MATCH(parser, TT_AMP_AMP)).present) {
+		ExpressionResult right = parse_bitwise_or_expression(parser);
 		if (!right.ok) {
 			expression_free(result);
 			return right;
@@ -382,9 +481,9 @@ static ExpressionResult parse_logical_or_expression(Parser* parser)
 	}
 
 	Expression* result = left.get.value;
+	MaybeToken op;
 
-	while (look(parser, TT_PIPE_PIPE)) {
-		advance_ignore(parser);
+	while ((op = MATCH(parser, TT_PIPE_PIPE)).present) {
 		ExpressionResult right = parse_logical_and_expression(parser);
 		if (!right.ok) {
 			expression_free(result);
