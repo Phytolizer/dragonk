@@ -36,12 +36,18 @@ target_include_directories(
 )
 target_compile_features(dragonk-compiler PUBLIC c_std_11)
 target_link_libraries(dragonk-compiler PUBLIC dragonk-core)
+if(DRAGONK_DEBUGGING)
+  target_compile_options(dragonk-compiler PUBLIC -fsanitize=address,undefined)
+endif()
 
 add_library(dragonk-driver src/driver/run.c)
 target_link_libraries(dragonk-driver PUBLIC dragonk-compiler dragonk-core)
 
 add_executable(dragonk src/main.c)
 target_link_libraries(dragonk PRIVATE dragonk-driver)
+if(DRAGONK_DEBUGGING)
+  target_link_options(dragonk PUBLIC -fsanitize=address,undefined)
+endif()
 
 configure_file(cmake/config.h.cmake-in include/dragon/config.h)
 
@@ -53,6 +59,9 @@ target_link_libraries(dragonk-test PRIVATE dragonk-driver)
 target_include_directories(dragonk-test PRIVATE tests/include)
 if(TEST_ABORT_ON_FAILURE)
   target_compile_definitions(dragonk-test PRIVATE "TEST_ABORT_ON_FAILURE=1")
+endif()
+if(DRAGONK_DEBUGGING)
+  target_link_options(dragonk-test PUBLIC -fsanitize=address,undefined)
 endif()
 
 enable_testing()
