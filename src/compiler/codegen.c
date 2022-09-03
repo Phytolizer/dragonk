@@ -100,6 +100,8 @@ static void codegen_binary_op_expr(Compiler* compiler, BinaryOpExpression* expr)
 		(void)fprintf(fp, "    movzx rax, al\n");
 		(void)fprintf(fp, STR_FMT ":\n", STR_ARG(endLabel));
 		(void)fprintf(fp, "    push rax\n");
+		str_free(trueLabel);
+		str_free(endLabel);
 		break;
 	}
 	case BINARY_OP_KIND_LOGICAL_OR: {
@@ -119,6 +121,8 @@ static void codegen_binary_op_expr(Compiler* compiler, BinaryOpExpression* expr)
 		(void)fprintf(fp, "    movzx rax, al\n");
 		(void)fprintf(fp, STR_FMT ":\n", STR_ARG(endLabel));
 		(void)fprintf(fp, "    push rax\n");
+		str_free(falseLabel);
+		str_free(endLabel);
 		break;
 	}
 	case BINARY_OP_KIND_LESS:
