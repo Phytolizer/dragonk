@@ -262,9 +262,148 @@ static ExpressionResult parse_additive_expression(Parser* parser)
 	return (ExpressionResult)OK(result);
 }
 
+static ExpressionResult parse_relational_expression(Parser* parser)
+{
+	ExpressionResult left = parse_additive_expression(parser);
+	if (!left.ok) {
+		return left;
+	}
+
+	Expression* result = left.get.value;
+	MaybeToken op;
+
+	TokenType relationalTypes[] = {
+		TT_LEFT,
+		TT_RIGHT,
+		TT_LEFT_EQUAL,
+		TT_RIGHT_EQUAL,
+	};
+
+	while ((op = match(parser, (TokenTypeBuf)BUF_ARRAY(relationalTypes))).present) {
+		ExpressionResult right = parse_additive_expression(parser);
+		if (!right.ok) {
+			expression_free(result);
+			return right;
+		}
+		BinaryOpExpression* binary = malloc(sizeof(BinaryOpExpression));
+		binary->base.type = EXPRESSION_TYPE_BINARY_OP;
+		switch (op.value.type) {
+		case TT_LEFT:
+			binary->kind = BINARY_OP_KIND_LESS;
+			break;
+		case TT_RIGHT:
+			binary->kind = BINARY_OP_KIND_GREATER;
+			break;
+		case TT_LEFT_EQUAL:
+			binary->kind = BINARY_OP_KIND_LESS_EQUAL;
+			break;
+		case TT_RIGHT_EQUAL:
+			binary->kind = BINARY_OP_KIND_GREATER_EQUAL;
+			break;
+		default:
+			UNREACHABLE();
+		}
+		binary->left = result;
+		binary->right = right.get.value;
+		result = &binary->base;
+		token_free(op.value);
+	}
+
+	return (ExpressionResult)OK(result);
+}
+
+static ExpressionResult parse_equality_expression(Parser* parser)
+{
+	ExpressionResult left = parse_relational_expression(parser);
+	if (!left.ok) {
+		return left;
+	}
+
+	Expression* result = left.get.value;
+	MaybeToken op;
+
+	TokenType equalityTypes[] = {
+		TT_EQUAL_EQUAL,
+		TT_BANG_EQUAL,
+	};
+
+	while ((op = match(parser, (TokenTypeBuf)BUF_ARRAY(equalityTypes))).present) {
+		ExpressionResult right = parse_relational_expression(parser);
+		if (!right.ok) {
+			expression_free(result);
+			return right;
+		}
+		BinaryOpExpression* binary = malloc(sizeof(BinaryOpExpression));
+		binary->base.type = EXPRESSION_TYPE_BINARY_OP;
+		binary->kind = op.value.type == TT_EQUAL_EQUAL
+		               ? BINARY_OP_KIND_EQUALITY
+		               : BINARY_OP_KIND_INEQUALITY;
+		binary->left = result;
+		binary->right = right.get.value;
+		result = &binary->base;
+		token_free(op.value);
+	}
+
+	return (ExpressionResult)OK(result);
+}
+
+static ExpressionResult parse_logical_and_expression(Parser* parser)
+{
+	ExpressionResult left = parse_equality_expression(parser);
+	if (!left.ok) {
+		return left;
+	}
+
+	Expression* result = left.get.value;
+
+	while (look(parser, TT_AMP_AMP)) {
+		advance_ignore(parser);
+		ExpressionResult right = parse_equality_expression(parser);
+		if (!right.ok) {
+			expression_free(result);
+			return right;
+		}
+		BinaryOpExpression* binary = malloc(sizeof(BinaryOpExpression));
+		binary->base.type = EXPRESSION_TYPE_BINARY_OP;
+		binary->kind = BINARY_OP_KIND_LOGICAL_AND;
+		binary->left = result;
+		binary->right = right.get.value;
+		result = &binary->base;
+	}
+
+	return (ExpressionResult)OK(result);
+}
+
+static ExpressionResult parse_logical_or_expression(Parser* parser)
+{
+	ExpressionResult left = parse_logical_and_expression(parser);
+	if (!left.ok) {
+		return left;
+	}
+
+	Expression* result = left.get.value;
+
+	while (look(parser, TT_PIPE_PIPE)) {
+		advance_ignore(parser);
+		ExpressionResult right = parse_logical_and_expression(parser);
+		if (!right.ok) {
+			expression_free(result);
+			return right;
+		}
+		BinaryOpExpression* binary = malloc(sizeof(BinaryOpExpression));
+		binary->base.type = EXPRESSION_TYPE_BINARY_OP;
+		binary->kind = BINARY_OP_KIND_LOGICAL_OR;
+		binary->left = result;
+		binary->right = right.get.value;
+		result = &binary->base;
+	}
+
+	return (ExpressionResult)OK(result);
+}
+
 static ExpressionResult parse_expression(Parser* parser)
 {
-	return parse_additive_expression(parser);
+	return parse_logical_or_expression(parser);
 }
 
 typedef RESULT(Statement, str) StatementResult;

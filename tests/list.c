@@ -41,6 +41,8 @@ static void walk_stage_dir(TestCaseBuf* buf, TestDirInfo* info, str path)
 				TestCase testCase;
 				testCase.path = childPath;
 				testCase.isValid = info->isValidDir;
+				testCase.skipOnFailure =
+				        str_startswith(name, str_lit("skip_on_failure_"));
 				BUF_PUSH(buf, testCase);
 			}
 		}

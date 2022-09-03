@@ -10,7 +10,7 @@
 #include "dragon/test/list.h"
 #include "dragon/token.h"
 
-static TEST_FUNC(state, lex, str path)
+static TEST_FUNC(state, lex, str path, bool skipOnFailure)
 {
 	SlurpFileResult sourceResult = slurp_file(path);
 	TEST_ASSERT(
@@ -23,14 +23,20 @@ static TEST_FUNC(state, lex, str path)
 
 	Lexer lexer = lexer_new(sourceResult.get.value, str_ref(path));
 	for (Token tok = lexer_first(&lexer); !lexer_done(&lexer); tok = lexer_next(&lexer)) {
-		TEST_ASSERT(
-		        state,
-		        tok.type != TT_ERROR,
-		        CLEANUP(token_free(tok); str_free(sourceResult.get.value)),
-		        "lex failed on " SOURCE_LOCATION_FMT ": '" STR_FMT "'",
-		        SOURCE_LOCATION_ARG(tok.location),
-		        STR_ARG(tok.text)
-		);
+		if (tok.type == TT_ERROR) {
+			if (skipOnFailure) {
+				token_free(tok);
+				str_free(sourceResult.get.value);
+				SKIP();
+			}
+			FAIL(
+			        state,
+			        CLEANUP(token_free(tok); str_free(sourceResult.get.value)),
+			        "lex failed on " SOURCE_LOCATION_FMT ": '" STR_FMT "'",
+			        SOURCE_LOCATION_ARG(tok.location),
+			        STR_ARG(tok.text)
+			);
+		}
 		token_free(tok);
 	}
 
@@ -45,7 +51,7 @@ SUITE_FUNC(state, lexer)
 
 	for (uint64_t i = 0; i < tests.len; i++) {
 		TestCase test = tests.ptr[i];
-		RUN_TEST(state, lex, str_ref(test.path), str_ref(test.path));
+		RUN_TEST(state, lex, str_ref(test.path), str_ref(test.path), test.skipOnFailure);
 		str_free(test.path);
 	}
 	BUF_FREE(tests);

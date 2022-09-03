@@ -243,9 +243,56 @@ static void lex(Lexer* lexer)
 	case '~':
 		lexer->lookahead = make_token(lexer, TT_TILDE, TOKEN_VALUE_NONE);
 		break;
-	case '!':
-		lexer->lookahead = make_token(lexer, TT_BANG, TOKEN_VALUE_NONE);
+	case '!': {
+		MaybeChar c2 = lexer_peek(lexer, 0);
+		if (c2.present && c2.value == '=') {
+			lexer_advance(lexer);
+			lexer->lookahead = make_token(lexer, TT_BANG_EQUAL, TOKEN_VALUE_NONE);
+		} else {
+			lexer->lookahead = make_token(lexer, TT_BANG, TOKEN_VALUE_NONE);
+		}
 		break;
+	}
+	case '&': {
+		MaybeChar c2 = lexer_peek(lexer, 0);
+		if (c2.present && c2.value == '&') {
+			lexer_advance(lexer);
+			lexer->lookahead = make_token(lexer, TT_AMP_AMP, TOKEN_VALUE_NONE);
+		} else {
+			hadError = true;
+		}
+		break;
+	}
+	case '|': {
+		MaybeChar c2 = lexer_peek(lexer, 0);
+		if (c2.present && c2.value == '|') {
+			lexer_advance(lexer);
+			lexer->lookahead = make_token(lexer, TT_PIPE_PIPE, TOKEN_VALUE_NONE);
+		} else {
+			hadError = true;
+		}
+		break;
+	}
+	case '=': {
+		MaybeChar c2 = lexer_peek(lexer, 0);
+		if (c2.present && c2.value == '=') {
+			lexer_advance(lexer);
+			lexer->lookahead = make_token(lexer, TT_EQUAL_EQUAL, TOKEN_VALUE_NONE);
+		} else {
+			hadError = true;
+		}
+		break;
+	}
+	case '>': {
+		MaybeChar c2 = lexer_peek(lexer, 0);
+		if (c2.present && c2.value == '=') {
+			lexer_advance(lexer);
+			lexer->lookahead = make_token(lexer, TT_RIGHT_EQUAL, TOKEN_VALUE_NONE);
+		} else {
+			lexer->lookahead = make_token(lexer, TT_RIGHT, TOKEN_VALUE_NONE);
+		}
+		break;
+	}
 	case '+':
 		lexer->lookahead = make_token(lexer, TT_PLUS, TOKEN_VALUE_NONE);
 		break;
@@ -270,7 +317,14 @@ static void lex(Lexer* lexer)
 				        );
 			}
 		} else  {
-			hadError = true;
+			MaybeChar c2 = lexer_peek(lexer, 0);
+			if (c2.present && c2.value == '=') {
+				lexer_advance(lexer);
+				lexer->lookahead = make_token(lexer, TT_LEFT_EQUAL, TOKEN_VALUE_NONE);
+			} else {
+				lexer->lookahead = make_token(lexer, TT_LEFT, TOKEN_VALUE_NONE);
+			}
+			break;
 		}
 		break;
 	default:

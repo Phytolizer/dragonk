@@ -66,6 +66,72 @@ static void codegen_binary_op_expr(FILE* fp, BinaryOpExpression* expr)
 		(void)fprintf(fp, "    idiv rdi\n");
 		(void)fprintf(fp, "    push rax\n");
 		break;
+	case BINARY_OP_KIND_LOGICAL_AND:
+		(void)fprintf(fp, "    pop rdi\n");
+		(void)fprintf(fp, "    pop rax\n");
+		(void)fprintf(fp, "    and rax, rdi\n");
+		(void)fprintf(fp, "    cmp rax, 0\n");
+		(void)fprintf(fp, "    setne al\n");
+		(void)fprintf(fp, "    movzx rax, al\n");
+		(void)fprintf(fp, "    push rax\n");
+		break;
+	case BINARY_OP_KIND_LOGICAL_OR:
+		(void)fprintf(fp, "    pop rdi\n");
+		(void)fprintf(fp, "    pop rax\n");
+		(void)fprintf(fp, "    or rax, rdi\n");
+		(void)fprintf(fp, "    cmp rax, 0\n");
+		(void)fprintf(fp, "    setne al\n");
+		(void)fprintf(fp, "    movzx rax, al\n");
+		(void)fprintf(fp, "    push rax\n");
+		break;
+	case BINARY_OP_KIND_LESS:
+		(void)fprintf(fp, "    pop rdi\n");
+		(void)fprintf(fp, "    pop rax\n");
+		(void)fprintf(fp, "    cmp rax, rdi\n");
+		(void)fprintf(fp, "    setl al\n");
+		(void)fprintf(fp, "    movzx rax, al\n");
+		(void)fprintf(fp, "    push rax\n");
+		break;
+	case BINARY_OP_KIND_LESS_EQUAL:
+		(void)fprintf(fp, "    pop rdi\n");
+		(void)fprintf(fp, "    pop rax\n");
+		(void)fprintf(fp, "    cmp rax, rdi\n");
+		(void)fprintf(fp, "    setle al\n");
+		(void)fprintf(fp, "    movzx rax, al\n");
+		(void)fprintf(fp, "    push rax\n");
+		break;
+	case BINARY_OP_KIND_GREATER:
+		(void)fprintf(fp, "    pop rdi\n");
+		(void)fprintf(fp, "    pop rax\n");
+		(void)fprintf(fp, "    cmp rax, rdi\n");
+		(void)fprintf(fp, "    setg al\n");
+		(void)fprintf(fp, "    movzx rax, al\n");
+		(void)fprintf(fp, "    push rax\n");
+		break;
+	case BINARY_OP_KIND_GREATER_EQUAL:
+		(void)fprintf(fp, "    pop rdi\n");
+		(void)fprintf(fp, "    pop rax\n");
+		(void)fprintf(fp, "    cmp rax, rdi\n");
+		(void)fprintf(fp, "    setge al\n");
+		(void)fprintf(fp, "    movzx rax, al\n");
+		(void)fprintf(fp, "    push rax\n");
+		break;
+	case BINARY_OP_KIND_EQUALITY:
+		(void)fprintf(fp, "    pop rdi\n");
+		(void)fprintf(fp, "    pop rax\n");
+		(void)fprintf(fp, "    cmp rax, rdi\n");
+		(void)fprintf(fp, "    sete al\n");
+		(void)fprintf(fp, "    movzx rax, al\n");
+		(void)fprintf(fp, "    push rax\n");
+		break;
+	case BINARY_OP_KIND_INEQUALITY:
+		(void)fprintf(fp, "    pop rdi\n");
+		(void)fprintf(fp, "    pop rax\n");
+		(void)fprintf(fp, "    cmp rax, rdi\n");
+		(void)fprintf(fp, "    setne al\n");
+		(void)fprintf(fp, "    movzx rax, al\n");
+		(void)fprintf(fp, "    push rax\n");
+		break;
 	}
 }
 

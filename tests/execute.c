@@ -12,7 +12,7 @@
 #include "dragon/test/info.h"
 #include "dragon/test/list.h"
 
-static TEST_FUNC(state, execute, str testPath, bool isValid)
+static TEST_FUNC(state, execute, str testPath, bool isValid, bool skipOnFailure)
 {
 	char* args[] = { "dragon", "-o", "dragon.out", (char*)testPath.ptr };
 	int outpipe[2];
@@ -26,6 +26,10 @@ static TEST_FUNC(state, execute, str testPath, bool isValid)
 	(void)fclose(err);
 	if (isValid) {
 		if (res != 0) {
+			if (skipOnFailure) {
+				(void)remove("dragon.out");
+				SKIP();
+			}
 			FILE* errIn = fdopen(errpipe[0], "r");
 			char* line = NULL;
 			size_t len = 0;
@@ -36,8 +40,7 @@ static TEST_FUNC(state, execute, str testPath, bool isValid)
 			FAIL(
 			        state,
 			        CLEANUP((void)remove("dragon.out")),
-			        "dragon failed to compile " STR_FMT,
-			        STR_ARG(testPath)
+			        "dragon failed to compile"
 			);
 		}
 	} else {
@@ -122,7 +125,8 @@ SUITE_FUNC(state, execute)
 		        execute,
 		        str_ref(test.path),
 		        str_ref(test.path),
-		        test.isValid
+		        test.isValid,
+		        test.skipOnFailure
 		);
 		str_free(test.path);
 	}

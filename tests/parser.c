@@ -11,7 +11,7 @@
 #include "dragon/test/info.h"
 #include "dragon/test/list.h"
 
-static TEST_FUNC(state, parse, str path, bool isValid)
+static TEST_FUNC(state, parse, str path, bool isValid, bool skipOnFailure)
 {
 	SlurpFileResult sourceResult = slurp_file(path);
 	TEST_ASSERT(
@@ -27,6 +27,14 @@ static TEST_FUNC(state, parse, str path, bool isValid)
 	parser_free(parser);
 	str_free(sourceResult.get.value);
 	if (isValid) {
+		if (skipOnFailure) {
+			if (result.ok) {
+				program_free(result.get.value);
+			} else {
+				str_free(result.get.error);
+			}
+			SKIP();
+		}
 		TEST_ASSERT(
 		        state,
 		        result.ok,
@@ -56,7 +64,14 @@ SUITE_FUNC(state, parser)
 
 	for (uint64_t i = 0; i < tests.len; i++) {
 		TestCase test = tests.ptr[i];
-		RUN_TEST(state, parse, str_ref(test.path), str_ref(test.path), test.isValid);
+		RUN_TEST(
+		        state,
+		        parse,
+		        str_ref(test.path),
+		        str_ref(test.path),
+		        test.isValid,
+		        test.skipOnFailure
+		);
 		str_free(test.path);
 	}
 	BUF_FREE(tests);

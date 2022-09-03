@@ -9,6 +9,7 @@
 typedef struct {
 	str path;
 	bool isValid;
+	bool skipOnFailure;
 } TestCase;
 
 typedef BUF(TestCase) TestCaseBuf;
