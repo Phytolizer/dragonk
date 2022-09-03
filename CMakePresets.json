@@ -26,7 +26,14 @@
             "displayName": "x64 Debug",
             "inherits": ["linux-base", "vcpkg-base"],
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "dev-debug",
+            "displayName": "x64 Debug (Sanitizers)",
+            "inherits": ["dev"],
+            "cacheVariables": {
                 "DRAGONK_DEBUGGING": "ON"
             }
         },
